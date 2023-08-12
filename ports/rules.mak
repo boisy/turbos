@@ -3,23 +3,24 @@
 # Environment variables are used to specify any directories other
 # than the defaults below:
 #
-#   TURBOS9DIR   - base directory of the project on your system
+#   TURBOSDIR   - base directory of the project on your system
 #
 # If the defaults below are fine, then there is no need to set any
 # environment variables.
 
-# TurbOS9 version, major and minor release numbers are here
-TURBOS9_MAJOR       = 0
-TURBOS9_MINOR       = 1
+# TurbOS version, major and minor release numbers are here
+TURBOS_MAJOR       = 0
+TURBOS_MINOR       = 1
+TURBOS_MININUM     = 0
 
 #################### DO NOT CHANGE ANYTHING BELOW THIS LINE ####################
 
 OS9                 = os9
 
-TURBOS9_VERSION     = v$(TURBOS9_MAJOR).$(TURBOS9_MINOR)
+TURBOS_VERSION     = v$(TURBOS_MAJOR).$(TURBOS_MINOR)
 
-DEFSDIR             = $(TURBOS9DIR)/defs
-DSKDIR              = $(TURBOS9DIR)/dsks
+DEFSDIR             = $(TURBOSDIR)/source/definitions
+DSKDIR              = $(TURBOSDIR)/disk_images
 
 # Assembler definitions
 AS                  = lwasm --6309 --format=os9 --pragma=pcaspcr,nosymbolcase,condundefzero,undefextern,dollarnotlocal,noforwardrefmax --includedir=. --includedir=$(DEFSDIR)
@@ -29,11 +30,7 @@ ASOUT               = -o
 ifdef LISTDIR
 ASOUT               = --list=$(LISTDIR)/$@.lst --symbols -o
 endif
-AFLAGS              = -DNOS9VER=$(NOS9VER) -DNOS9MAJ=$(NOS9MAJ) -DNOS9MIN=$(NOS9MIN) -DNOS9DBG=$(NOS9DBG)
-ifdef PORT
-AFLAGS              += -D$(PORT)=1
-endif
-
+AFLAGS              = -DTURBOS_MAJOR=$(TURBOS_MAJOR) -DTURBOS_MINOR=$(TURBOS_MINOR) -DTURBOS_MININUM=$(TURBOS_MININUM)
 # RMA/RLINK
 ASM                 = lwasm --6309 --format=obj --pragma=pcaspcr,condundefzero,undefextern,dollarnotlocal,noforwardrefmax,export --includedir=. --includedir=$(DEFSDIR)
 LINKER              = lwlink --format=os9
@@ -66,7 +63,7 @@ LOSETUP             = sudo losetup
 LINK                = ln
 SOFTLINK            = $(LINK) -s
 ARCHIVE             = zip -D -9 -j
-MKDSKINDEX          = perl $(TURBOS9DIR)/scripts/mkdskindex
+MKDSKINDEX          = perl $(TURBOSDIR)/scripts/mkdskindex
 
 # C Rules
 %.o: %.c
@@ -111,4 +108,3 @@ MKDSKINDEX          = perl $(TURBOS9DIR)/scripts/mkdskindex
 # All other modules
 %: %.asm
 	$(AS) $(AFLAGS) $< $(ASOUT)$@
-
