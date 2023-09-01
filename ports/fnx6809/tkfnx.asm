@@ -204,11 +204,11 @@ dopoll@        jsr       [>D.Poll]           poll ISRs
                endc      
 * Increment the 32-bit timer
                inc       <D.Ticks+3
-               bcc       next@
+               bne       next@
                inc       <D.Ticks+2
-               bcc       next@
+               bne       next@
                inc       <D.Ticks+1
-               bcc       next@
+               bne       next@
                inc       <D.Ticks
 next@                    
 GoAltIRQ       jmp       [>D.Clock]          jump into clock routine
