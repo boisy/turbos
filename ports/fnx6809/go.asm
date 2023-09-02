@@ -33,7 +33,7 @@ name           fcs       /go/
 
 * This is an F256 Jr. specific program that sets up the screen and puts a
 * simple message on the screen.
-start                    
+start
 
 * Initialize display
                pshs      cc
@@ -58,31 +58,19 @@ x1@            tfr       d,x
                stb       $c000,x
                stb       $c400,x
                stb       $c800,x
-               incb      
+               incb
                bne       x1@
 
-* Initialize palette
+* Initialize palette.
                leax      palette,pcr
                ldy       #TEXT_LUT_FG
-               ldu       #64
-loop@          ldd       ,x++
-               std       ,y++
-               ldd       ,x++
-               std       ,y++
-               leau      -4,u
-               bne       loop@
+               bsr       copypal
 
-               leax      palette+64,pcr
+               leax      palette,pcr
                ldy       #TEXT_LUT_BG
-               ldu       #64
-loop@          ldd       ,--x
-               std       ,y++
-               ldd       ,--x
-               std       ,y++
-               leau      -4,u
-               bne       loop@
+               bsr       copypal
 
-* Install font
+* Install font.
                lda       #1
                sta       >MMU_IO_CTRL
                leax      font,pcr
@@ -92,41 +80,43 @@ loop@          ldd       ,x++
                cmpy      #$C000+2048
                bne       loop@
 
+* Setup foreground/background character LUT values.
                ldb       #3
                stb       >MMU_IO_CTRL
-               lda       #$10
-
-               tfr       a,b
-               ldx       #$c000
-loop@          std       ,x++
-               cmpx      #$c000+80*61
-               bne       loop@
-
-               ldb       #2                  ; text
+               ldd       #$10*256+$10
+               bsr       clr
+               ldb       #2
                stb       >MMU_IO_CTRL
-
-
-* Clear screen memory
-               ldy       #G.ScrEnd
-               pshs      y
-               ldy       #G.ScrStart
-               ldd       #C$SPACE*256+C$SPACE
-loop@          std       ,y++
-               cmpy      ,s
-               bne       loop@
-               puls      u
+               ldd       #$20*256+$20
 
                lda       #Prgrm+Objct
                ldb       #$01
                leax      go2,pcr
                ldy       #$0000
                os9       F$Fork
-               
+
                os9       F$Wait
-forever@                 
+forever@
                bra       forever@
 
 go2            fcs       /go2/
+
+* Clear screen memory.
+clr            ldx       #$C000
+loop@          std       ,x++
+               cmpx      #$C000+80*61
+               bne       loop@
+               rts
+
+copypal        ldu       #64
+loop@          ldd       ,x++
+               std       ,y++
+               ldd       ,x++
+               std       ,y++
+               leau      -4,u
+               cmpu      #0000
+               bne       loop@
+               rts
 
 palette        fcb       $00,$00,$00,$00
                fcb       $ff,$ff,$ff,$00
@@ -145,10 +135,10 @@ palette        fcb       $00,$00,$00,$00
                fcb       $ff,$88,$00,$00
                fcb       $bb,$bb,$bb,$00
 
-font                     
+font
                use       "8x8.fcb"
 
-               emod      
+               emod
 eom            equ       *
-               end       
+               end
 

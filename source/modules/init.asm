@@ -46,10 +46,10 @@ start          equ       *
                ifne      _FF_UNIFIED_IO
                fdb       DefDev              offset to default storage device
                fdb       DefCons             offset to default console device
-               endc
+               endc      
                ifne      _FF_BOOTING
                fdb       DefBoot             offset to booter
-               endc
+               endc      
                fcb       1                   OS level
                fcb       TURBOS_MAJOR        OS version
                fcb       TURBOS_MINOR        OS major revision
@@ -65,10 +65,10 @@ DefProg        fcs       "go"
                ifne      _FF_UNIFIED_IO
 DefDev         fcs       "/dd"
 DefCons        fcs       "/term"
-               endc
+               endc      
                ifne      _FF_BOOTING
 DefBoot        fcs       "boot"
-               endc
+               endc      
 
                emod      
 eom            equ       *

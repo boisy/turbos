@@ -3,7 +3,7 @@
 * Feature Flags - eliminating one or more of these capabilities saves code space.
 *
 * Manage your own interrupts or install interrupt service routines using F$IRQ.
-_FF_IRQ_POLL   equ       0                   Set to 1 for interrupt service routine polling
+_FF_IRQ_POLL   equ       1                   Set to 1 for interrupt service routine polling
 
 * Use virtual interrupt service routines using F$VIRQ.
 _FF_VIRQ_POLL  equ       0                   Set to 1 for virtual interrupt service routine polling

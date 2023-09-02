@@ -66,9 +66,18 @@ name           fcs       /kernel/
 * Kernel entry point
 *
 ColdStart      equ       *
-**** FNX6809 PORT SPECIFIC CODE !! ****
-* FNX6809-specific initialization to get the F256 to a sane state.
                ifne      fnx6809
+*>>>>>>>>>> FNX6809 PORT
+* In RAM mode, the FNX6809 memory map looks like this:
+*    $0000-$1FFF - RAM at $000000-$001FFF
+*    $2000-$3FFF - RAM at $002000-$003FFF
+*    $4000-$5FFF - RAM at $004000-$005FFF
+*    $6000-$7FFF - RAM at $006000-$007FFF
+*    $8000-$9FFF - RAM at $008000-$009FFF
+*    $A000-$BFFF - RAM at $00A000-$00BFFF
+*    $C000-$DFFF - RAM at $00C000-$00DFFF
+*    $E000-$FFFF - RAM at $00E000-$00FFFF
+* FNX6809-specific initialization to get the F256 to a sane state.
                orcc      #IntMasks           mask interrupts
                clra                          clear A
                tfr       a,dp                transfer to DP
@@ -78,40 +87,41 @@ ColdStart      equ       *
                sta       INT_MASK_1          mask all set 1 interrupts
                sta       INT_PENDING_0       clear any pending set 0 interrupts
                sta       INT_PENDING_1       clear any pending set 0 interrupts
+*<<<<<<<<<< FNX6809 PORT
                endc      
-**** FNX6809 PORT SPECIFIC CODE !! ****
 
 * Clear out system globals from $D.FMBM-$0400.
-               ldx       #D.FMBM             get start of free memory bitmap in X
-               ldy       #$400-D.FMBM        get top of area to clear in Y (counter)
+               ldx       #D.FMBM              start clearing memory at D.FMBM
+               ldy       #$400-D.FMBM        get the number of bytes to clear
                clra                          clear A
                clrb                          clear B (D now $0000)
-clear@         std       ,x++                save off at X and increment
+loop@          std       ,x++                save off at X and increment
                leay      -2,y                decrement counter
-               bne       clear@              continue if not zero
+               bne       loop@               continue if not zero
 
-* Set up system globals
+* Set up the system globals area.
                inca                          D = $100
                inca                          D = $200
-               std       <D.FMBM             $200 = start of free memory bitmap
+               std       <D.FMBM             $200 = start of the free memory bitmap
                addb      #$20                D = $220
-               std       <D.FMBM+2           $220 = end of free memory bitmap
+               std       <D.FMBM+2           $220 = end of the free memory bitmap
                addb      #$02                D = $222
-               std       <D.SysDis           $222 = addr of sys dispatch tbl
+               std       <D.SysDis           $222 = address of the system dispatch table
                addb      #$70                D = $292
-               std       <D.UsrDis           $292 = addr of usr dispatch tbl
+               std       <D.UsrDis           $292 = address of the user dispatch table
                clrb                          D = $200
                inca                          D = $300
-               std       <D.ModDir           $300 = mod dir start
-               stx       <D.ModDir+2         X = $400 = mod dir end
-               leas      >$0100,x            S = $500 (system stack)
+               std       <D.ModDir           $300 = module directory starting address
+               stx       <D.ModDir+2         X = $400 = module directory ending address
+               leas      >$0100,x            S = $500 = system stack
 
 * This routine checks for RAM by writing a pattern at an address
 * then reading it back for validation. It may not be needed, so it's
 * conditionalized.
                ifne      CHECK_FOR_VALID_RAM
+*>>>>>>>>>> CHECK_FOR_VALID_RAM
                leax      ModTop,pcr          point X to start of kernel module
-               pshs      x
+               pshs      x    save it on the stack
 ChkRAM         leay      ,x                  point Y to X ($400)
                ldd       ,y                  store org contents in D
                ldx       #$00FF              set X to pattern to write
@@ -129,42 +139,44 @@ ChkRAM         leay      ,x                  point Y to X ($400)
                leay      ,x                  point Y to X (end of RAM)
 EndOfRAM@      leax      ,y                  X = end of RAM
                leas      2,s
+*<<<<<<<<<< CHECK_FOR_VALID_RAM
                else      
+*>>>>>>>>>> NOT(CHECK_FOR_VALID_RAM)
                leax      ModTop,pcr          point X to start of kernel module
+*<<<<<<<<<< NOT(CHECK_FOR_VALID_RAM)
                endc      
-               stx       <D.MLIM             save off memory limit
+               stx       <D.MLIM             save off as the memory limit
 
-**** FNX6809 PORT SPECIFIC CODE !! ****
                ifne      fnx6809
+*>>>>>>>>>> FNX6809 PORT
                ldx       #$8000              start searching for modules in low RAM
+*<<<<<<<<<< FNX6809 PORT
                endc      
-**** FNX6809 PORT SPECIFIC CODE !! ****
 
 * Copy vector code over to D.XSWI3 ($0100).
                pshs      x                   save off X
                leax      >VectCode,pcr       point X to vector code
                ldy       #D.XSWI3            point Y to vector base in low RAM
                ldb       #VectCSz            get size of vector code in B
-copy@          lda       ,x+                 get source byte
+loop@          lda       ,x+                 get source byte
                sta       ,y+                 save in destination
                decb                          decrement counter
-               bne       copy@               branch if not done
-               puls      x                   restore X
+               bne       loop@               branch if not done
+               puls      x                   recover the saved RAM upper limit
                ldy       #MappedIOStart      stop short of IO address area
                lbsr      ValMods             validate modules there
 
 * Some platforms don't have contiguous RAM in the 64K address space due to "holes"
 * for areas such as I/O. For these platforms, we have to perform a separate
 * module scan to look for modules after those holes.
-*
-**** FNX6809 PORT SPECIFIC CODE !! ****
                ifne      fnx6809
+*>>>>>>>>>> FNX6809 PORT
 * FNX6809: look for more modules at $E000-$FFF0
-               ldx       #$E000
-               ldy       #$FFF0
-               lbsr      ValMods
+               ldx       #$E000              start at $E000
+               ldy       #$FFF0              stop at $FFF0
+               lbsr      ValMods       validate modules there
+*<<<<<<<<<< FNX6809 PORT
                endc      
-**** FNX6809 PORT SPECIFIC CODE !! ****
 
 * Copy vectors to system globals.
                leay      >Vectors,pcr        point Y to vectors
@@ -187,10 +199,10 @@ copy@          ldd       ,y++                get vector bytes
                stx       <D.UsrSvc           store it in system globals
                leax      >SysIRQ,pcr         get the system state IRQ routine
                stx       <D.SysIRQ           store it in system globals
-               stx       <D.SvcIRQ
+               stx       <D.SvcIRQ           and the IRQ sevice vector
                leax      >SysSvc,pcr         get the system state service routine      
                stx       <D.SysSvc           store it in system globals
-               stx       <D.SWI2
+               stx       <D.SWI2             and in the SWI2 vector
                ifne      _FF_IRQ_POLL
                leax      >FIRQPoller,pcr     get the address of the IRQ polling routine
                else
@@ -234,30 +246,27 @@ continue@
 * The free memory bitmap has the following structure:
 *   bit 7 of 0,x corresponds to page 0, bit 6 to page 1 etc.
 *   bit 7 of 1,x corresponds to page 8, bit 6 to page 9 etc.
-SetupMap       ldx       <D.FMBM             get free memory bitmap in X
-               ldb       #%11111000          reserve $0000-$04FF
-               stb       ,x                  mark that area in the bitmap as allocated
+               ldx       <D.FMBM             get free memory bitmap in X
+               ldb       #%11111000          get mask for $0000-$04FF
+               stb       ,x                  mark those pages as allocated
 
-**** FNX6809 PORT SPECIFIC CODE !! ****
                ifne      fnx6809
+*>>>>>>>>>> FNX6809 PORT
 * FNX6809 needs $C000-$DFFF reserved since this is I/O space.
-               ldb       #%11111111
-               ldb       #%11111111
-               stb       $18,x               mark $C000-$C7FF I/O area as allocated
-               stb       $19,x               mark $C800-$CFFF I/O area as allocated
-               stb       $1A,x               mark $D000-$D7FF I/O area as allocated
-               stb       $1B,x               mark $D800-$DFFF I/O area as allocated
+               ldd       #$FFFF
+               std       $18,x               mark $C000-$CFFF I/O area as allocated
+               std       $1A,x               mark $D000-$DFFF I/O area as allocated
+*<<<<<<<<<< FNX6809 PORT
                endc      
-**** FNX6809 PORT SPECIFIC CODE !! ****
 
 * Exclude high memory as defined (earlier) by D.MLIM.
                clra                          A = 0
                ldb       <D.MLIM             B = upper byte of 16 bit memory limit
                negb                          negate B
-               tfr       d,y                 transfer D to Y
-               negb                          negate B
+               tfr       d,y                 transfer D to Y (Y = the number of bits to set)
+               negb                          negate B (D = the number of the first bit to set)
                lbsr      AllocBit            call into F$AllBit to allocate bits
-* Allocate process descriptor for new process.
+* Allocate a process descriptor for the initial process.
                ldx       <D.PrcDBT           get process descriptor table in X
                os9       F$All64             allocate a new 64 byte page
                bcs       FatalErr            failed to allocate
@@ -273,10 +282,12 @@ SetupMap       ldx       <D.FMBM             get free memory bitmap in X
 
                ifne      _FF_UNIFIED_IO
 * ChdDir should identify system device, result in a call to IOCall which links and
-* initialises IOMan. This could fail if IOMan is not loaded.
+* initializes IOMan. This could fail if IOMan is not loaded.
                bsr       ChdDir              attempt to change directories
                ifne      _FF_BOOTING
                bcc       open@               branch if successful
+* Maybe we failed because we didn't have all the modules we needed? Load and
+* validate the boot file and then try again.
                lbsr      LoadBoot            else attempt to load bootfile
                bsr       ChdDir              then try to change directories again
                endc      
@@ -284,7 +295,7 @@ open@          bsr       OpenCons            try to open the console
                ifne      _FF_BOOTING
                bcc       ChainProg           branch if successful
 * Maybe we were able to get this far without needing anything from the boot file, but now
-* we need it for the console device
+* we need it for the console device.
                lbsr      LoadBoot            else attempt to load bootfile
                bsr       OpenCons            try to open the console again
                endc      
@@ -306,11 +317,11 @@ forever@       bra       forever@
 * Entry: U = The address of the Init module.
 ChdDir         clrb                          clear carry
                ldd       <CM$StoreMod,u      get system device
-               beq       ChdDir10            branch if none - carry still clear
+               beq       ex@                 branch if none - carry still clear
                leax      d,u                 address of the path list
                lda       #READ.+EXEC.        access mode
                os9       I$ChgDir            change directory to it
-ChdDir10       rts                           carry set -> error
+ex@            rts                           carry set -> error
 
 * Open the console device.
 * Entry: U = The address of the Init module
@@ -319,14 +330,14 @@ OpenCons       clrb                          clear B
                leax      d,u                 point X to the address of the name
                lda       #UPDAT.             open for update
                os9       I$Open              open it
-               bcs       OpenCn10            branch if error
+               bcs       ex@                 branch if error
                ldx       <D.Proc             get process descriptor
                sta       P$Path+0,x          save path to console to stdin...
                os9       I$Dup               duplicate it
                sta       P$Path+1,x          ...stdout
                os9       I$Dup               duplicate it
                sta       P$Path+2,x          ...and stderr
-OpenCn10       rts                           return to the caller
+ex@            rts                           return to the caller
                endc      
 
 SWI3           pshs      pc,x,b              save off registers
@@ -343,9 +354,9 @@ SWI            pshs      pc,x,b              save off registers
 FixSWI         ldx       >D.Proc             get process descriptor
                ldx       b,x                 get SWI entry
                stx       3,s                 put in PC on stack
-               puls      pc,x,b
+               puls      pc,x,b              restore registers and return
 
-* User state interrupt service routine entry
+* User state interrupt service routine entry.
 UsrIRQ         leay      <DoIRQPoll,pcr      point to the default IRQ polling routine
 * Transition from user to system state.
 URtoSs         clra                          clear A
@@ -387,7 +398,7 @@ ex@            rti                           return from interrupt
 Poll           comb      
                rts       
 
-* Default clock routine
+* Here is the default clock routine which performs process queue management.
 Clock          ldx       <D.SProcQ           get pointer to sleeping proc queue
                beq       decslice@           branch if no process sleeping
                lda       P$State,x           get state of that process
@@ -399,27 +410,27 @@ Clock          ldx       <D.SProcQ           get pointer to sleeping proc queue
                std       R$X,u               and store it back
                bne       decslice@           branch if not zero (still will sleep)
 nextqentry@    ldu       P$Queue,x           get process current queue pointer
-               bsr       SFAProc
-               leax      ,u
-               beq       saveit@
+               bsr       SFAProc             activate the process
+               leax      ,u                  point to the queue
+               beq       saveit@             branch if empty
                lda       P$State,x           get process state byte
                bita      #TimSleep           bit set?
                beq       saveit@             branch if not
                ldu       P$SP,x              get process stack pointer
                ldd       R$X,u               then get process X register
                beq       nextqentry@         branch if zero
-saveit@        stx       <D.SProcQ
+saveit@        stx       <D.SProcQ           save in the sleep queue
 decslice@      dec       <D.Slice            decrement slice
-               bne       ClockRTI            if not 0, exit ISR
+               bne       ex@                 if not 0, exit ISR
                lda       <D.TSlice           else get default time slice
                sta       <D.Slice            and save it as slice
                ldx       <D.Proc             get proc desc of current proc
-               beq       ClockRTI            if none, exit ISR
+               beq       ex@                 if none, exit ISR
                lda       P$State,x           get process state
                ora       #TimOut             set timeout bit
                sta       P$State,x           and store back
                bpl       gosys@              branch if not system state
-ClockRTI       rti       
+ex@            rti                           return from the interrupt
 gosys@         leay      >ActivateProc,pcr   point Y to activate process routine
                bra       URtoSs              go to system state
 
@@ -448,7 +459,7 @@ ActivateProc   ldx       <D.Proc             get current proc desc
                bsr       SFAProc
                bra       FNProc              next process
 
-* System- tate system call entry point.
+* System state system call entry point.
 *
 * All system calls made from system state go through this code.
 SysSvc         clra                          A = 0
@@ -666,7 +677,7 @@ SysTbl         fcb       F$Link
                fcb       F$SPrior
                fdb       FSPrior-*-2
                fcb       F$SSWI
-               fdb       F$SSWI-*-2
+               fdb       FSSWI-*-2
                fcb       F$Find64+SysState
                fdb       FFind64-*-2
                fcb       F$All64+SysState

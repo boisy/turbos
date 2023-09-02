@@ -21,7 +21,7 @@
 ;;; Exit:  None. Control doesn't return to the caller.
 ;;;
 ;;; F$NProc takes the next process out of the active process queue and initiates its execution.
-;;; If the queue doesn't contain a process, the kerenl waits for an interrupt and then checks the
+;;; If the queue doesn't contain a process, the kernel waits for an interrupt and then checks the
 ;;; queue again. The process calling F$NProc must already be in one of the three process queues.
 ;;; If it isn't, it becomes unknown to the system even though the process descriptor still exists
 ;;; and can be displayed by `procs`.

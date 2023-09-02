@@ -23,11 +23,12 @@ TURBOS.D       set       1
 true           equ       1
 false          equ       0
 
-               pag       
+               pag
 *****************************************
 * System service request code definitions
 *
                org       0
+* User and system state calls
 F$Link         rmb       1                   link to module
 F$Load         rmb       1                   load module from file
 F$UnLink       rmb       1                   unlink module
@@ -52,7 +53,7 @@ F$STime        rmb       1                   set current time
 F$CRC          rmb       1                   generate CRC
 
                org       $27                 beginning of system reserved calls
-* Common system calls
+* System state (privileged) calls
 F$VIRQ         rmb       1                   install/delete virtual IRQ
 F$SRqMem       rmb       1                   system memory request
 F$SRtMem       rmb       1                   system memory return
@@ -73,7 +74,7 @@ F$IODel        rmb       1                   delete I/O module
                org       $70
                rmb       16                  reserved for user definition
 
-               pag       
+               pag
 **************************************
 * I/O service request code definitions
 *
@@ -119,7 +120,7 @@ S$Wake         rmb       1                   wake-up sleeping process
 S$Abort        rmb       1                   keyboard abort
 S$Intrpt       rmb       1                   keyboard interrupt
 
-               pag       
+               pag
 **********************************
 * Status codes for GetStat/SetStat
 *
@@ -170,7 +171,7 @@ SS.FSig        rmb       1                   new signal for temp locked files
                rmb       19
 
                ttl       Direct Page Definitions
-               pag       
+               pag
 
 **********************************
 * Direct page variable definitions
@@ -178,8 +179,8 @@ SS.FSig        rmb       1                   new signal for temp locked files
                org       $00
                org       $20
 D.FMBM         rmb       4                   free memory bit map pointers
-D.MLIM         rmb       2                   memory limit
-D.ModDir       rmb       4                   module directory
+D.MLIM         rmb       2                   upper RAM memory limit
+D.ModDir       rmb       4                   module directory pointers (start and end)
 D.Init         rmb       2                   configuration module base address
 D.SWI3         rmb       2                   SWI3 vector
 D.SWI2         rmb       2                   SWI2 vector
@@ -196,7 +197,7 @@ D.SysSvc       rmb       2                   system service request routine
 D.UsrDis       rmb       2                   user service request dispatch table
 D.SysDis       rmb       2                   system service reuest dispatch table
 D.Slice        rmb       1                   process time slice count
-D.PrcDBT       rmb       2                   process descriptor block address
+D.PrcDBT       rmb       2                   process descriptor block table
 D.Proc         rmb       2                   process descriptor address
 D.AProcQ       rmb       2                   active process queue
 D.WProcQ       rmb       2                   waiting process queue
@@ -236,12 +237,12 @@ D.XIRQ         rmb       3
 D.XFIRQ        rmb       3
 
 * Table Sizes
-BMAPSZ         equ       32                  bitmap table size
+BMAPSZ         equ       65536/256/8         memory allocation bitmap table size
 SVCTNM         equ       2                   number of service request tables
 SVCTSZ         equ       (256-BMAPSZ)/SVCTNM-2 service request table size
 
                ttl       Structure Formats
-               pag       
+               pag
 ************************************
 * Module directory entry definitions
 *
@@ -319,7 +320,7 @@ CM$Feature2    rmb       1                   feature byte 2
 CRCOn          equ       %00000001           CRC checking on
 CRCOff         equ       %00000000           CRC checking off
 
-               pag       
+               pag
 **************************
 * Module field definitions
 *
@@ -382,7 +383,7 @@ CRCCon1        equ       $80
 CRCCon23       equ       $0FE3
 
                ttl       Process Information
-               pag       
+               pag
 ********************************
 * Process descriptor definitions
 *
@@ -429,7 +430,7 @@ Condem         equ       %00000010
 Dead           equ       %00000001
 
                ttl       I/O Definitions
-               pag       
+               pag
 *************************
 * Path descriptor offsets
 *
@@ -454,7 +455,7 @@ PDELIM         equ       '/                  pathlist name separator
 PDIR           equ       '.                  directory
 PENTIR         equ       '@                  entire device
 
-               pag       
+               pag
 ****************************
 * File manager entry offsets
 *
@@ -529,7 +530,7 @@ Vi.PkSz        equ       .
 
 Vi.IFlag       equ       %00000001           status byte virq flag
 
-               pag       
+               pag
 *************************************
 * Machine characteristics definitions
 *
@@ -556,7 +557,7 @@ IntMasks       equ       IRQMask+FIRQMask
 Sign           equ       %10000000           sign bit
 
                ttl       Error code definitions
-               pag       
+               pag
 ************************
 * Error code definitions
 *
@@ -624,4 +625,4 @@ C$Space        set       $20
 C$Period       set       '.
 C$Comma        set       ',
 
-               endc      
+               endc

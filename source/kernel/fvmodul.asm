@@ -23,7 +23,7 @@
 *
 * Error:  B = A non-zero error code.
 *        CC = Carry flag set to indicate error.
-FindModule               
+FindModule
                ldu       #$0000              initialize U with $0000
                tfr       a,b                 copy A to B
                anda      #TypeMask           preserve type bits in A
@@ -34,7 +34,7 @@ _stk1B@        set       1
 _stk1X@        set       2
 _stk1Y@        set       4
 _stk1U@        set       6
-               bsr       EatSpace            move X past any spaces
+               bsr       eatspace@           move X past any spaces
                cmpa      #PDELIM             pathlist char?
                beq       exerr@              branch if so
                lbsr      ParseNam            parse name
@@ -42,7 +42,7 @@ _stk1U@        set       6
                ldu       <D.ModDir           get pointer to module directory
 FindLoop       pshs      u,y,b               save important registers
 _stk2B@        set       0                   B = pathname length
-_stk2Y@        set       1                   Y = 
+_stk2Y@        set       1                   Y =
 _stk2U@        set       3                   U = address of next module in module directory
 _stk1A@        set       0+_stk2U@+2
 _stk1B@        set       1+_stk2U@+2
@@ -73,7 +73,7 @@ _stk1X@        set       2
 _stk1Y@        set       4
 _stk1U@        set       6
                stu       _stk1U@,s           save off found module in caller's U
-               bsr       EatSpace            move past any spaces
+               bsr       eatspace@           move past any spaces
                stx       _stk1X@,s           save off character past module name in caller's X
                clra                          clear carry
                bra       ex@                 branch to exit of routine
@@ -95,14 +95,13 @@ NextMod        puls      u,y,b               restore pushed regs
                bcs       FindLoop            no... continue searching
 exerr@         comb                          set carry
 ex@            puls      pc,u,y,x,b,a        return to caller
-
 * Advance past any leading spaces in a string.
 *
 * Entry: X = Pointer to string.
 *
 * Exit:  A = First non-space character.
 *        X = Pointer to first non-space character.
-EatSpace       lda       #C$SPACE            load A with space character
+eatspace@      lda       #C$SPACE            load A with space character
 loop@          cmpa      ,x+                 compare with character at X and increment
                beq       loop@               if space, keep going
                lda       ,-x                 else get non-space character at X-1
@@ -153,7 +152,7 @@ ValMod         bsr       ChkMHCRC            check the module header and CRC
                beq       errex@              branch if so
 * Here, we've established another module of the same name as the one we're validating already
 * exists in the module directory, and it's NOT this same module.
-* Check the revision to see if this one is newer and should replace the existing one.               
+* Check the revision to see if this one is newer and should replace the existing one.
                lda       M$Revs,x            else get revision byte of passed module
                anda      #RevsMask           mask out all but revision
                pshs      a                   save off
@@ -169,7 +168,7 @@ ValMod         bsr       ChkMHCRC            check the module header and CRC
                cmpx      <D.BTLO             compare against Boot low memory pointer
                bcc       pulsaveandex@       branch if higher
 * Here, we've determined the module we're validating is newer than the one that already
-* exists in memory.               
+* exists in memory.
                ldd       M$Size,x            else get module size from module header
                addd      #$00FF              round up to next page
                tfr       a,b                 divide by 256 (# of pages to clear)
@@ -199,9 +198,9 @@ ChkMHCRC       ldd       ,x                  get two bytes at start of potential
                leay      M$Parity,x          else point Y to the parity byte in the module
                bsr       ChkMHPar            check header parity
                bcc       Chk4CRC             branch if ok
-               else      
+               else
                rts                           if _FF_MODCHECK is true, just return
-               endc      
+               endc
 errex@         comb                          else set carry
                ldb       #E$BMID             and load B with error
                rts                           return to caller
@@ -210,7 +209,7 @@ errex@         comb                          else set carry
 * Check module CRC
 *
 * Entry: X = Address of module to check.
-Chk4CRC                  
+Chk4CRC
                lda       <D.CRC              is CRC checking on?
                bne       DoCRCCk             branch if so
                clrb                          else clear carry
@@ -232,7 +231,7 @@ ChkMHPar       pshs      y,x                 save off X and Y
 _stk1X@        set       0
 _stk1Y@        set       2
                clra                          A = 0
-loop@          eora      ,x+                 XOR with 
+loop@          eora      ,x+                 XOR with
                cmpx      _stk1Y@,s           compare to address of parity byte
                bls       loop@               branch if not there yet
                cmpa      #$FF                parity check done... is it correct?
@@ -260,4 +259,4 @@ loop@          lda       ,x+                 get next byte of module
 err@           comb                          ...else set carry
                ldb       #E$BMCRC            load B with error
 ex@            puls      pc,y,x              return to caller
-               endc      
+               endc

@@ -55,7 +55,7 @@ loopstart@     subb      #$08                subtract 8 from B
                bcc       loop2@              branch if B is >= 0
                dec       _mask@,s            else decrement mask byte
                bpl       loop2@              and branch if hi bit not set
-loop3@         lsla                          divide A by 2   
+loop3@         lsla                          divide A by 2
                incb                          increment B
                bne       loop3@              continue if B is not 0
                ora       ,x                  OR A with value at X
@@ -82,7 +82,7 @@ ex@            sta       ,x                  and store it at X
 * We get back 8 in A (bit 3 set) and 3000 in D (the address of the bit).
 
 CalcBit        pshs      b                   preserve B
-               lsra                          divide D   
+               lsra                          divide D
                rorb                          by 2
                lsra                          then divide D
                rorb                          by 2
@@ -145,7 +145,7 @@ loop3@         lsla                          shift A left one bit, filling LSB w
                anda      ,x                  and it with byte at X
 ex@            sta       ,x                  and store it
                clr       ,s+                 eat the byte at the stack
-               puls      pc,y,x,b,a          pull remaning registers and return to the caller
+               puls      pc,y,x,b,a          pull remaining registers and return to the caller
 
 ;;; F$SchBit
 ;;;
@@ -163,7 +163,7 @@ ex@            sta       ,x                  and store it
 ;;;        CC = Carry flag set to indicate error.
 ;;;
 ;;; F$SchBit searches the specified allocation bit map for contiguous cleared bits of the required length. The search
-;;; starts at the starting bit number. If no block of the specified size exists, the call returns with the carry set, 
+;;; starts at the starting bit number. If no block of the specified size exists, the call returns with the carry set,
 ;;; starting bit number, and size of the largest block.
 
 FSchBit        pshs      u                   save off caller's registers
@@ -200,33 +200,33 @@ _stk1B@        set       _stk1B@+1
 _stk1X@        set       _stk1X@+1
 _stk1Y@        set       _stk1Y@+1
 _stk1U@        set       _stk1U@+1
-               bra       looptop@
+               bra       looptop@            start at the top of the loop
 loop@          leay      1,y                 increment Y
-               sty       _stk1A@,s
-loop2@         lsr       _stk3A@,s
-               bcc       looptop2@
-               ror       _stk3A@,s
-               leax      1,x
-looptop@       cmpx      _stk1U@,s
-               bcc       loopout@
-looptop2@      lda       ,x
-               anda      _stk3A@,s
-               bne       loop@
-               leay      $01,y
-               tfr       y,d
-               subd      _stk1A@,s
-               cmpd      _stk2Y@,s
-               bcc       saveandex@
-               cmpd      _stk1Y@,s
-               bls       loop2@
-               std       _stk1Y@,s
-               ldd       _stk1A@,s
-               std       _stk2A@,s
-               bra       loop2@
-loopout@       ldd       _stk2A@,s
-               std       _stk1A@,s
-               coma      
-               bra       ex@
-saveandex@     std       _stk1Y@,s
-ex@            leas      _stk1A@,s
-               puls      pc,u,y,x,b,a
+               sty       _stk1A@,s           save onto the stack
+loop2@         lsr       _stk3A@,s           shift the byte on the stack right (bit 0 goes into carry)
+               bcc       looptop2@           branch if carry is clear (more to do)
+               ror       _stk3A@,s           else rotate right byte on stack
+               leax      1,x                 advance X by 1
+looptop@       cmpx      _stk1U@,s           compare X to the end of the bitmap on the stack
+               bcc       loopout@            branch if equal (we're finished)
+looptop2@      lda       ,x                  get the byte in the bitmap at X into A
+               anda      _stk3A@,s           AND with bit mask on stack
+               bne       loop@               branch if not zero
+               leay      $01,y               else advance Y by 1 byte
+               tfr       y,d                 transfer it to D
+               subd      _stk1A@,s           subract bit number to start with the on the stack from D
+               cmpd      _stk2Y@,s           compare to our counter
+               bcc       saveandex@          branch if equal
+               cmpd      _stk1Y@,s           compare against the number of bits cleared on the stack with D
+               bls       loop2@              branch if the value on the stack is lower or same as D
+               std       _stk1Y@,s           else save D into the number of bits cleared position on the stack
+               ldd       _stk1A@,s           get the bit number to start with on the stack into D
+               std       _stk2A@,s           save off into the next position on the stack
+               bra       loop2@              and continue working
+loopout@       ldd       _stk2A@,s           get the next position on the stack
+               std       _stk1A@,s           store it
+               coma                          complement A
+               bra       ex@                 and prepare to return to the caller
+saveandex@     std       _stk1Y@,s           get the number of bits cleared
+ex@            leas      _stk1A@,s           clean up the stack
+               puls      pc,u,y,x,b,a        restore registers and return to the caller

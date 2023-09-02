@@ -41,19 +41,19 @@ FLink          pshs      u                   save caller regs
                ldd       R$A,u               get desired type/language byte
                ldx       R$X,u               get pointer to desired module name to link to
                lbsr      FindModule          go find the module
-               bcc       FLinkOK             branch if found
+               bcc       ok@                 branch if found
                ldb       #E$MNF              ...else Module Not Found error
-               bra       FLinkBye            and return to caller
-FLinkOK        ldy       MD$MPtr,u           get module directory ptr
+               bra       ex@                 and return to caller
+ok@            ldy       MD$MPtr,u           get module directory ptr
                ldb       M$Revs,y            get revision byte
                bitb      #ReEnt              reentrant?
-               bne       IncCount            branch if so
+               bne       inc@                branch if so
                tst       MD$Link,u           link count zero?
-               beq       IncCount            yep, ok to link to non-reentrant
+               beq       inc@                yep, ok to link to non-reentrant
                comb                          ...else set carry
                ldb       #E$ModBsy           load B with Module Busy
-               bra       FLinkBye            and return to caller
-IncCount       inc       MD$Link,u           increment link count
+               bra       ex@                 and return to caller
+inc@           inc       MD$Link,u           increment link count
                ldu       ,s                  get caller register pointer from stack
                stx       R$X,u               save off updated name pointer
                sty       R$U,u               save off address of found module
@@ -62,4 +62,4 @@ IncCount       inc       MD$Link,u           increment link count
                ldd       M$IDSize,y          get the module ID size in D
                leax      d,y                 advance X to the start of the body of the module
                stx       R$Y,u               store X in caller's Y register
-FLinkBye       puls      pc,u                return to caller
+ex@            puls      pc,u                return to caller

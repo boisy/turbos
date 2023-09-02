@@ -10,7 +10,7 @@ VPATH=$(TURBOSDIR)/source/modules $(TURBOSDIR)/source/commands $(TURBOSDIR)/sour
 
 AFLAGS += -DPORTNAME="$(PORTNAME)" -D$(PORTNAME)
 
-COMMANDS	= go
+COMMANDS	= go_simple
 MODULES	= kernel init tkcc
 OBJS	= $(MODULES) $(COMMANDS)
 
@@ -44,3 +44,6 @@ clean:
 
 gh:
 	open "http://www.github.com/boisy/turbos"
+
+emu: dsk
+	mame -inipath ~/mame -cfg_directory ~/mame/cfg coco2b -flop1 turbos.dsk
