@@ -30,7 +30,7 @@
 ;;; F$Chain loads and executes a new primary module, but doesn't create a new process. F$Chain is similar to F$Fork followed
 ;;; by F$Exit, but has less processing overhead. F$Chain resets the calling process' program and data memory areas, then begins
 ;;;
-;;; F$Chain unlinks the process’ old primary module, then parses the name of the new process’ primary module  It searches the system module 
+;;; F$Chain unlinks the process’ old primary module, then parses the name of the new process’ primary module  It searches the system module
 ;;; directory for module with the same name, type, and language already in memory.
 ;;; If the module is in memory, F$Chain links to it. If the module isn't in memory, F$Chain uses the name string as the pathlist
 ;;; of a file to load into memory. Then, it links to the first module in this file. (Several modules can be loaded from a single file.)

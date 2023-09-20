@@ -15,7 +15,7 @@
 *
 * This is how the memory map looks after the kernel has initialized:
 *
-*     $0000----> ================================== 
+*     $0000----> ==================================
 *               |                                  |
 *               |                                  |
 *  $0020-$0111  |  System Globals (D.FMBM-D.XNMI)  |
@@ -81,17 +81,17 @@ ColdStart      equ       *
                orcc      #IntMasks           mask interrupts
                clra                          clear A
                tfr       a,dp                transfer to DP
-               clr       MMU_IO_CTRL         map I/O into bank 6
+               clr       MMU_MEM_CTRL        set active LUT to set 0
                lda       #$FF                set all bits in A
                sta       INT_MASK_0          mask all set 0 interrupts
                sta       INT_MASK_1          mask all set 1 interrupts
                sta       INT_PENDING_0       clear any pending set 0 interrupts
                sta       INT_PENDING_1       clear any pending set 0 interrupts
 *<<<<<<<<<< FNX6809 PORT
-               endc      
+               endc
 
-* Clear out system globals from $D.FMBM-$0400.
-               ldx       #D.FMBM              start clearing memory at D.FMBM
+* Clear out system global variables from $D.FMBM-$0400.
+               ldx       #D.FMBM             start clearing memory at D.FMBM
                ldy       #$400-D.FMBM        get the number of bytes to clear
                clra                          clear A
                clrb                          clear B (D now $0000)
@@ -140,18 +140,18 @@ ChkRAM         leay      ,x                  point Y to X ($400)
 EndOfRAM@      leax      ,y                  X = end of RAM
                leas      2,s
 *<<<<<<<<<< CHECK_FOR_VALID_RAM
-               else      
+               else
 *>>>>>>>>>> NOT(CHECK_FOR_VALID_RAM)
                leax      ModTop,pcr          point X to start of kernel module
 *<<<<<<<<<< NOT(CHECK_FOR_VALID_RAM)
-               endc      
+               endc
                stx       <D.MLIM             save off as the memory limit
 
                ifne      fnx6809
 *>>>>>>>>>> FNX6809 PORT
                ldx       #$8000              start searching for modules in low RAM
 *<<<<<<<<<< FNX6809 PORT
-               endc      
+               endc
 
 * Copy vector code over to D.XSWI3 ($0100).
                pshs      x                   save off X
@@ -169,14 +169,6 @@ loop@          lda       ,x+                 get source byte
 * Some platforms don't have contiguous RAM in the 64K address space due to "holes"
 * for areas such as I/O. For these platforms, we have to perform a separate
 * module scan to look for modules after those holes.
-               ifne      fnx6809
-*>>>>>>>>>> FNX6809 PORT
-* FNX6809: look for more modules at $E000-$FFF0
-               ldx       #$E000              start at $E000
-               ldy       #$FFF0              stop at $FFF0
-               lbsr      ValMods       validate modules there
-*<<<<<<<<<< FNX6809 PORT
-               endc      
 
 * Copy vectors to system globals.
                leay      >Vectors,pcr        point Y to vectors
@@ -200,7 +192,7 @@ copy@          ldd       ,y++                get vector bytes
                leax      >SysIRQ,pcr         get the system state IRQ routine
                stx       <D.SysIRQ           store it in system globals
                stx       <D.SvcIRQ           and the IRQ sevice vector
-               leax      >SysSvc,pcr         get the system state service routine      
+               leax      >SysSvc,pcr         get the system state service routine
                stx       <D.SysSvc           store it in system globals
                stx       <D.SWI2             and in the SWI2 vector
                ifne      _FF_IRQ_POLL
@@ -227,8 +219,8 @@ copy@          ldd       ,y++                get vector bytes
                bita      #CRCOn              is CRC checking on?
                beq       continue@           branch if not (already cleared earlier)
                inc       <D.CRC              else turn on CRC checking
-               endc      
-continue@                
+               endc
+continue@
 
 * Link to tick generator module, if any and call its initialization routine.
                ldd       CM$TickMod,u
@@ -238,7 +230,7 @@ continue@
                os9       F$Link
                bcs       continue@
                jsr       ,y
-continue@                
+continue@
 
 * Setup the free memory bitmap.
 * This area of the kernel is highly platform-dependent.
@@ -249,15 +241,6 @@ continue@
                ldx       <D.FMBM             get free memory bitmap in X
                ldb       #%11111000          get mask for $0000-$04FF
                stb       ,x                  mark those pages as allocated
-
-               ifne      fnx6809
-*>>>>>>>>>> FNX6809 PORT
-* FNX6809 needs $C000-$DFFF reserved since this is I/O space.
-               ldd       #$FFFF
-               std       $18,x               mark $C000-$CFFF I/O area as allocated
-               std       $1A,x               mark $D000-$DFFF I/O area as allocated
-*<<<<<<<<<< FNX6809 PORT
-               endc      
 
 * Exclude high memory as defined (earlier) by D.MLIM.
                clra                          A = 0
@@ -290,7 +273,7 @@ continue@
 * validate the boot file and then try again.
                lbsr      LoadBoot            else attempt to load bootfile
                bsr       ChdDir              then try to change directories again
-               endc      
+               endc
 open@          bsr       OpenCons            try to open the console
                ifne      _FF_BOOTING
                bcc       ChainProg           branch if successful
@@ -298,8 +281,8 @@ open@          bsr       OpenCons            try to open the console
 * we need it for the console device.
                lbsr      LoadBoot            else attempt to load bootfile
                bsr       OpenCons            try to open the console again
-               endc      
-               endc      
+               endc
+               endc
 
 ChainProg      ldd       CM$GoMod,u          get the offset to the 'GO' program from the Init module
                leax      d,u                 point X to the address of the name
@@ -309,7 +292,7 @@ ChainProg      ldd       CM$GoMod,u          get the offset to the 'GO' program 
                os9       F$Chain             chain to it
 
 * If we get here, loop forever.
-FatalErr                 
+FatalErr
 forever@       bra       forever@
 
                ifne      _FF_UNIFIED_IO
@@ -338,7 +321,7 @@ OpenCons       clrb                          clear B
                os9       I$Dup               duplicate it
                sta       P$Path+2,x          ...and stderr
 ex@            rts                           return to the caller
-               endc      
+               endc
 
 SWI3           pshs      pc,x,b              save off registers
                ldb       #P$SWI3             get P$SWI3
@@ -346,7 +329,7 @@ SWI3           pshs      pc,x,b              save off registers
 SWI2           pshs      pc,x,b              save off registers again
                ldb       #P$SWI2             get P$SWI2
                bra       FixSWI              save it off in process descriptor
-SVCNMI         jmp       [>D.NMI]            jump to address in D.NMI       
+SVCNMI         jmp       [>D.NMI]            jump to address in D.NMI
 DUMMY          rti                           return from interrupt
 SVCIRQ         jmp       [>D.SvcIRQ]         jump to service IRQ address
 SWI            pshs      pc,x,b              save off registers
@@ -395,8 +378,8 @@ SysIRQ         clra                          clear A
 ex@            rti                           return from interrupt
 
 * This is the default interrupt polling routine -- it does nothing.
-Poll           comb      
-               rts       
+Poll           comb
+               rts
 
 * Here is the default clock routine which performs process queue management.
 Clock          ldx       <D.SProcQ           get pointer to sleeping proc queue
@@ -484,9 +467,9 @@ DoSysCall      pshs      u                   save off caller's register pointer
                ldx       -2,y                grab IOMan vector
                beq       callexit@           just exit if IOMan vector is empty
                bra       execcall@           make system call
-               else      
+               else
                bra       callexit@           for non IO support, just ignore any I$ calls
-               endc      
+               endc
 nonio@         cmpb      #$37*2              non-IO call; are we in safe are?
                bcc       callerr@            branch if not (unknown service)
                ldx       b,y                 X = address of system call
@@ -512,7 +495,7 @@ callerr@       comb                          set carry for error state
                use       fvmodul.asm
                ifne      _FF_MODCHECK
                use       fcrc.asm
-               endc      
+               endc
                use       ffork.asm
                use       fchain.asm
                use       fsrqmem.asm
@@ -538,7 +521,7 @@ callerr@       comb                          set carry for error state
                endc
                ifne      _FF_UNIFIED_IO
                use       iocall.asm
-               endc      
+               endc
 
                ifne      _FF_BOOTING
 * Attempt to load bootfile and validate the modules it contains.
@@ -580,7 +563,7 @@ ValBoot1       leax      1,x                 advance one byte
 ValBoot2       cmpx      <D.BTHI             are we less that the high mark of the bootfile?
                bcs       ValBoot             branch if we are
 JmpBtEr        puls      pc,u                retore register and return to caller
-               endc      
+               endc
 
 * Validate modules in memory.
 *
@@ -601,15 +584,15 @@ ex@            puls      y,pc                restore Y and return
 
 * This vector code that the kernel copies to low RAM ($0100).
 VectCode       bra       SWI3Jmp             $0100
-               nop       
+               nop
                bra       SWI2Jmp             $0103
-               nop       
+               nop
                bra       SWIJmp              $0106
-               nop       
+               nop
                bra       NMIJmp              $0109
-               nop       
+               nop
                bra       IRQJmp              $010C
-               nop       
+               nop
                bra       FIRQJmp             $010F
 SWI3Jmp        jmp       [>D.SWI3]
 SWI2Jmp        jmp       [>D.SWI2]
@@ -641,7 +624,7 @@ SysTbl         fcb       F$Link
                ifne      _FF_MODCHECK
                fcb       F$CRC
                fdb       FCRC-*-2
-               endc      
+               endc
                fcb       F$SRqMem+SysState
                fdb       FSRqMem-*-2
                fcb       F$SRtMem+SysState
@@ -657,7 +640,7 @@ SysTbl         fcb       F$Link
                ifne      _FF_UNIFIED_IO
                fcb       $7F
                fdb       IOCall-*-2
-               endc      
+               endc
                fcb       F$Unlink
                fdb       FUnlink-*-2
                fcb       F$Wait
@@ -703,6 +686,6 @@ Vectors        fdb       SWI3                SWI3
 
 EOMSize        equ       *-EOMTop
 
-               emod      
+               emod
 eom            equ       *
-               end       
+               end

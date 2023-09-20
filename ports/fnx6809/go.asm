@@ -38,12 +38,10 @@ start
 * Initialize display
                pshs      cc
                orcc      #IntMasks
-               clr       >MMU_IO_CTRL
 
-               lda       #MCTXM_ENABLE
-               ora       #MCG_ENABLE
-               sta       MCTRL_REG_L
-               clr       MCTRL_REG_H
+               lda       #Mstr_Ctrl_Text_Mode_En
+               sta       MASTER_CTRL_REG_L
+               clr       MASTER_CTRL_REG_H
 
                clr       BORDER_CTRL_REG
                clr       BORDER_COLOR_R
@@ -53,11 +51,15 @@ start
                clr       VKY_TXT_CURSOR_CTRL_REG
 
 * Initialize gamma
+               lda       MMU_SLOT_1
+               pshs      a
+               lda       #$C0
+               sta       MMU_SLOT_1
                ldd       #0
 x1@            tfr       d,x
-               stb       $c000,x
-               stb       $c400,x
-               stb       $c800,x
+               stb       $2000,x
+               stb       $2400,x
+               stb       $2800,x
                incb
                bne       x1@
 
@@ -71,23 +73,29 @@ x1@            tfr       d,x
                bsr       copypal
 
 * Install font.
-               lda       #1
-               sta       >MMU_IO_CTRL
+               lda       #$C1
+               sta       MMU_SLOT_1
                leax      font,pcr
-               ldy       #$C000+(8*20)
+               ldy       #$2000+(8*20)
 loop@          ldd       ,x++
                std       ,y++
-               cmpy      #$C000+2048
+               cmpy      #$2000+2048
                bne       loop@
 
-* Setup foreground/background character LUT values.
-               ldb       #3
-               stb       >MMU_IO_CTRL
+* Set foreground/background character LUT values.
+               lda       #$C3
+               sta       MMU_SLOT_1
                ldd       #$10*256+$10
                bsr       clr
-               ldb       #2
-               stb       >MMU_IO_CTRL
+
+* Clear text screen.
+               lda       #$C2
+               sta       MMU_SLOT_1
                ldd       #$20*256+$20
+               bsr       clr
+               puls      a
+               sta       MMU_SLOT_1
+               puls      cc
 
                lda       #Prgrm+Objct
                ldb       #$01
@@ -102,9 +110,9 @@ forever@
 go2            fcs       /go2/
 
 * Clear screen memory.
-clr            ldx       #$C000
+clr            ldx       #$2000
 loop@          std       ,x++
-               cmpx      #$C000+80*61
+               cmpx      #$2000+80*61
                bne       loop@
                rts
 

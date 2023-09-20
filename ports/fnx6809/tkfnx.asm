@@ -34,24 +34,20 @@ name           fcs       "tk"
 
 TkPerTS        equ       TkPerSec/10         ticks per time slice
 
-* CoCo 6821 address locations
-PIA0Base       equ       $FF00
-PIA1Base       equ       $FF20
-
 *
 * Table to set up Service Calls
 *
-NewSvc                   
+NewSvc
                ifne      _FF_WALLTIME
                fcb       F$Time
                fdb       FTime-*-2
                fcb       F$STime
                fdb       FSTime-*-2
-               endc      
+               endc
                ifne      _FF_VIRQ_POLL
                fcb       F$VIRQ
                fdb       FVIRQ-*-2
-               endc      
+               endc
                fcb       $80                 end of service call installation table
 
 ;;; F$STime
@@ -84,16 +80,16 @@ FSTime         ldx       R$X,u               get caller's pointer to time packet
                lda       #TkPerSec           reset to start of second
                sta       <D.Tick             save to current tick
                rts                           and return to the caller
-               endc      
+               endc
 
 * Ticker initialization
 *
 * The kernel calls this routine during system initialization.
-init                     
+init
                ifne      _FF_WALLTIME
                ldd       #59*256+$01         last second and last tick
                std       <D.Sec              will prompt RTC read at next time slice
-               endc      
+               endc
                ldb       #TkPerSec           get ticks per second
                stb       <D.TSec             set global
                ldb       #TkPerTS            get ticks per time slice
@@ -107,7 +103,6 @@ init
 * Use the Start Of Frame (SOF) to get a 1/60th or 1/70th interrupt
                pshs      cc                  save IRQ enable status (and Carry clear)
                orcc      #IntMasks
-               clr       MMU_IO_CTRL         set bank 6 to I/O
                lda       #$FF                load A with all bits set
                sta       INT_PENDING_0       clear any pending interrupts at set 0
                sta       INT_PENDING_1       clear any pending interrupts at set 1
@@ -118,9 +113,8 @@ init
 
 * Clock IRQ Entry Point
 *
-SvcIRQ         clra                          clear A         
+SvcIRQ         clra                          clear A
                tfr       a,dp                set direct page to zero
-               clr       MMU_IO_CTRL         set bank 6 to I/O
                lda       INT_PENDING_0       get the interrupt pending byte
                bita      #INT_VKY_SOF        test to see if it's a clock interrupt
                bne       clearirq@           it's a clock interrupt -- clear it
@@ -129,14 +123,14 @@ clearirq@      sta       INT_PENDING_0       clear clock interrupt by writing bi
                dec       <D.Tick             decrement tick counter
                bne       handlevirq@         go around if not zero
                ifne      _FF_WALLTIME
-* Perform wall time update               
+* Perform wall time update
                ldb       <D.Sec              get minutes/seconds
 * Seconds increment
                incb                          increment seconds
                stb       <D.Sec              update sec
                cmpb      #60                 are we at a full minute
                blt       updatetick@
-* Minutes increment               
+* Minutes increment
                lda       <D.Min              grab current minute
                inca                          increase the minute field by 1
                cmpa      #60                 are we at full hour?
@@ -169,10 +163,10 @@ UpdHour        std       <D.Day              save the day and hour
                clra                          minute is now 0 (top of the hour)
 UpdMin         clrb                          seconds is now 0 (top of the minute)
                std       <D.Min              store off the minutes and seconds
-               endc      
+               endc
 updatetick@    lda       <D.TSec             get ticks per second value
                sta       <D.Tick             and repopulate tick decrement counter
-handlevirq@              
+handlevirq@
                ifne      _FF_VIRQ_POLL
                ldy       <D.VIRQTable        get pointer to VIRQ table
                beq       GoAltIRQ            table isn't initialized, so service kernel
@@ -201,7 +195,7 @@ getnext@       ldx       ,y++                get address of next entry in VIRQ p
                bpl       UsrPoll             branch if system state not set
 dopoll@        jsr       [>D.Poll]           poll ISRs
                bcc       dopoll@             keep polling until carry set
-               endc      
+               endc
 * Increment the 32-bit timer
                inc       <D.Ticks+3
                bne       next@
@@ -210,7 +204,7 @@ dopoll@        jsr       [>D.Poll]           poll ISRs
                inc       <D.Ticks+1
                bne       next@
                inc       <D.Ticks
-next@                    
+next@
 GoAltIRQ       jmp       [>D.Clock]          jump into clock routine
 
                ifne      _FF_VIRQ_POLL
@@ -235,7 +229,7 @@ dl@            ldx       ,y++                get next entry
                puls      y,x                 restore
                leay      -2,y                move back 2 from Y (points to last entry)
                rts                           return
-               endc      
+               endc
 
 ;;; F$VIRQ
 ;;;
@@ -301,7 +295,7 @@ tablefull@     puls      cc                  restore CC register
                comb                          set carry
                ldb       #E$Poll             set polling table full error
                rts                           return to the caller
-               endc      
+               endc
 
 ;;; F$Time
 ;;;
@@ -341,8 +335,8 @@ FTime          ldx       R$X,u               get the caller's time packet in X
 
 months         fcb       31,28,31,30,31,30,31,31,30,31,30,31 Days in each month
 
-               endc      
+               endc
 
-               emod      
+               emod
 len            equ       *
-               end       
+               end

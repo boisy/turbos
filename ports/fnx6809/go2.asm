@@ -32,31 +32,29 @@ name           fcs       /go2/
                fcb       edition
 
 start          equ       *
-               
 
-               pshs      cc           
+
+               pshs      cc
                orcc      #IntMasks
-               lda       #$02
-               sta       >MMU_IO_CTRL
+               lda       #$C2
+               sta       >MMU_SLOT_1
                ldd       #'T*256+'u
-               std       $C000
+               std       $2000
                ldd       #'r*256+'b
-               std       $C002
+               std       $2002
                ldd       #'O*256+'S
-               std       $C004
+               std       $2004
                puls      cc
-               
+
 loop@          pshs      cc
                orcc      #IntMasks
-               lda       #$02
-               sta       >MMU_IO_CTRL
-               inc       $C000
+               inc       $2000
                puls      cc
                ldx       #$10
                os9       F$Sleep
                bra       loop@
-               
-               emod      
+
+               emod
 eom            equ       *
-               end       
+               end
 
