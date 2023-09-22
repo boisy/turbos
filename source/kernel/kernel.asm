@@ -66,9 +66,9 @@ name           fcs       /kernel/
 * Kernel entry point
 *
 ColdStart      equ       *
-               ifne      fnx6809
-*>>>>>>>>>> FNX6809 PORT
-* In RAM mode, the FNX6809 memory map looks like this:
+               ifne      f256
+*>>>>>>>>>> F256 PORT
+* In RAM mode, the F256 memory map looks like this:
 *    $0000-$1FFF - RAM at $000000-$001FFF
 *    $2000-$3FFF - RAM at $002000-$003FFF
 *    $4000-$5FFF - RAM at $004000-$005FFF
@@ -77,7 +77,7 @@ ColdStart      equ       *
 *    $A000-$BFFF - RAM at $00A000-$00BFFF
 *    $C000-$DFFF - RAM at $00C000-$00DFFF
 *    $E000-$FFFF - RAM at $00E000-$00FFFF
-* FNX6809-specific initialization to get the F256 to a sane state.
+* F256-specific initialization to get the F256 to a sane state.
                orcc      #IntMasks           mask interrupts
                clra                          clear A
                tfr       a,dp                transfer to DP
@@ -87,7 +87,7 @@ ColdStart      equ       *
                sta       INT_MASK_1          mask all set 1 interrupts
                sta       INT_PENDING_0       clear any pending set 0 interrupts
                sta       INT_PENDING_1       clear any pending set 0 interrupts
-*<<<<<<<<<< FNX6809 PORT
+*<<<<<<<<<< F256 PORT
                endc
 
 * Clear out system global variables from $D.FMBM-$0400.
@@ -146,12 +146,6 @@ EndOfRAM@      leax      ,y                  X = end of RAM
 *<<<<<<<<<< NOT(CHECK_FOR_VALID_RAM)
                endc
                stx       <D.MLIM             save off as the memory limit
-
-               ifne      fnx6809
-*>>>>>>>>>> FNX6809 PORT
-               ldx       #$8000              start searching for modules in low RAM
-*<<<<<<<<<< FNX6809 PORT
-               endc
 
 * Copy vector code over to D.XSWI3 ($0100).
                pshs      x                   save off X
