@@ -51,11 +51,5 @@ xroar_mac: dsk
 emu: dsk
 	mame -inipath ~/mame -cfg_directory ~/mame/cfg coco2b -flop1 turbos.dsk
 
-xroar_mac: dsk
-	/Applications/Xroar.app/Contents/MacOS/xroar --load-fd0 turbos.dsk
-
-emu: dsk
-	mame -inipath ~/mame -cfg_directory ~/mame/cfg coco2b -flop1 turbos.dsk
-
 showsizes: all
 	ls -l kernel tkcc
