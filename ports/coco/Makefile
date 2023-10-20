@@ -6,11 +6,11 @@ endif
 
 include $(TURBOSDIR)/ports/rules.mak
 
-VPATH=$(TURBOSDIR)/source/modules $(TURBOSDIR)/source/commands $(TURBOSDIR)/source/kernel $(TURBOSDIR)/tests 
+VPATH=$(TURBOSDIR)/source/modules $(TURBOSDIR)/source/commands $(TURBOSDIR)/source/kernel $(TURBOSDIR)/tests
 
 AFLAGS += -DPORTNAME="$(PORTNAME)" -D$(PORTNAME)
 
-COMMANDS	= go_simple
+COMMANDS	= go
 MODULES	= kernel init tkcc
 OBJS	= $(MODULES) $(COMMANDS)
 
@@ -45,5 +45,5 @@ clean:
 gh:
 	open "http://www.github.com/boisy/turbos"
 
-emu: dsk
-	mame -inipath ~/mame -cfg_directory ~/mame/cfg coco2b -flop1 turbos.dsk
+xroar_mac: dsk
+	/Applications/Xroar.app/Contents/MacOS/xroar --load-fd0 turbos.dsk
