@@ -19,7 +19,7 @@
                nam       Init
                ttl       Configuration module
 
-               use       defsfile
+               use       defs.d
 
 tylg           set       Systm+$00
 atrv           set       ReEnt+rev

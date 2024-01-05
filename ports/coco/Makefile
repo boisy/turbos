@@ -25,7 +25,7 @@ KERNEL_SOURCES = kernel.asm fallbit.asm faproc.asm fchain.asm fcmpnam.asm fcrc.a
 
 MODULE_SOURCES	= init.asm tkcc.asm
 
-kernel: $(KERNEL_SOURCES)
+kernel: $(KERNEL_SOURCES) defs.d
 
 lint: *.asm $(KERNEL_SOURCES) $(MODULE_SOURCES)
 	$(foreach file,$^,mamou -ls -p $(file) > /tmp/lint.out; mv /tmp/lint.out $(file) ;)
@@ -47,3 +47,6 @@ gh:
 
 emu: dsk
 	mame -inipath ~/mame -cfg_directory ~/mame/cfg coco2b -flop1 turbos.dsk
+
+showsizes: all
+	ls -l kernel tkcc
