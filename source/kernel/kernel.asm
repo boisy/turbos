@@ -504,9 +504,15 @@ callerr@       comb                          set carry for error state
                use       fsend.asm
                use       fsleep.asm
                use       ficpt.asm
+               ifne      _FF_SPRIOR
                use       fsprior.asm
+               endc
+               ifne      _FF_ID
                use       fid.asm
+               endc
+               ifne      _FF_SSWI
                use       fsswi.asm
+               endc
                use       ffind64.asm
                use       fall64.asm
                use       fret64.asm
@@ -649,12 +655,18 @@ SysTbl         fcb       F$Link
                fdb       FSleep-*-2
                fcb       F$Icpt
                fdb       FIcpt-*-2
+               ifne      _FF_ID
                fcb       F$ID
                fdb       FID-*-2
+               endc
+               ifne      _FF_SPRIOR
                fcb       F$SPrior
                fdb       FSPrior-*-2
+               endc
+               ifne      _FF_SSWI
                fcb       F$SSWI
                fdb       FSSWI-*-2
+               endc
                fcb       F$Find64+SysState
                fdb       FFind64-*-2
                fcb       F$All64+SysState
