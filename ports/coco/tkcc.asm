@@ -20,7 +20,7 @@
                nam       tkcc     
                ttl       CoCo tick module
 
-               use       defsfile
+               use       defs.d
 
 tylg           set       Systm+Objct
 atrv           set       ReEnt+rev
@@ -270,7 +270,7 @@ FVIRQ          pshs      cc                  preserve CC register
                orcc      #IntMasks           mask all interrupts
                ldy       <D.VIRQTable        get pointer to VIRQ polling table
                ldx       <D.Init             get pointer to init module
-               ldb       PollCnt,x           get poll count
+               ldb       CM$PollCnt,x        get poll count
                ldx       R$X,u               get pointer to caller's X
                beq       remove@             branch if removing
 * Install VIRQ entry here

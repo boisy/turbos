@@ -20,7 +20,7 @@
                nam       tkfnx
                ttl       Foenix Retro Systems F256/F256 Jr. ticker module
 
-               use       defsfile
+               use       defs.d
 
 tylg           set       Systm+Objct
 atrv           set       ReEnt+rev

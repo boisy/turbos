@@ -48,7 +48,7 @@
                nam       Kernel
                ttl       TurbOS Kernel
 
-               use       defsfile
+               use       defs.d
 
 tylg           set       Systm+Objct
 atrv           set       ReEnt+rev
