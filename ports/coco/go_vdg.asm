@@ -223,21 +223,20 @@ PRINT_HEX_8
                puls      a,x,pc              return with error in B
 
 ********************************************
- *
- * Binary to hexadecimal convertor
- *
- * This subroutine will convert the binary value in
- * 'D' to a 4 digit hexadecimal ascii string.
+*
+* Binary to hexadecimal convertor
+*
+* This subroutine will convert the binary value in
+* 'D' to a 4 digit hexadecimal ascii string.
+*
+* OTHER MODULES NEEDED: BIN2HEX
+*
+* ENTRY: D=value to convert
+*        X=buffer for hex string-null terminated
+*
+* EXIT all registers (except CC) preserved.
 
-
- * OTHER MODULES NEEDED: BIN2HEX
-
- * ENTRY: D=value to convert
- *        X=buffer for hex string-null terminated
-
- * EXIT all registers (except CC) preserved.
-
-               bin_hex_16: :
+bin_hex_16:
                pshs      d,x
                ldb       ,s
                lbsr      BIN2HEX             convert 1 byte
@@ -257,15 +256,13 @@ PRINT_HEX_8
                puls      b,x
 
 ****************************************
-
-  * Convert hex byte to 2 hex digits
-
-  * OTHER MODULES REQUIRED: none
-
-  * ENTRY: B= value to convert
-
-  * EXIT: D=2 byte hex digits
-
+* Convert hex byte to 2 hex digits
+*
+* OTHER MODULES REQUIRED: none
+*
+* ENTRY: B= value to convert
+*
+* EXIT: D=2 byte hex digits
 
 BIN2HEX                  
                pshs      b
