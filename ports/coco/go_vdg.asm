@@ -43,6 +43,7 @@ start
                lbsr      VDGInit
                bcs       exit
                lbsr      ClearScreen
+               lbsr      SetUpConsumer
 
 _SLEEP_TIME    equ       TkPerSec/TkPerSec
 *               leax      message,pcr   get pointer to message
@@ -192,6 +193,15 @@ loop@          std       ,x++
                bne       loop@
                rts       
 
+SetUpConsumer  leax      consumer,pcr
+               lda       #Prgrm+Objct
+               clrb
+               ldy       #1
+               os9       F$Fork
+               rts
+
+consumer       fcs       "consumer"
+
 *************************************
 * Print 4 digit (16-bit) hex number.
 *
@@ -247,7 +257,7 @@ bin_hex_16:
                clr       ,x                  term with null
                puls      d,x
 
-               bin_hex_8: 
+bin_hex_8: 
                pshs      b,x
                ldb       ,s
                lbsr      BIN2HEX             convert 1 byte
