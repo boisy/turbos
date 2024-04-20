@@ -15,7 +15,7 @@
                nam       go
                ttl       Very simple initial program
 
-               use       defsfile
+               use       defs.d
 
 tylg           set       Prgrm+Objct
 atrv           set       ReEnt+rev

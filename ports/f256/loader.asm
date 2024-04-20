@@ -1,7 +1,7 @@
 * FNXLoader - Loads the TurbOS kernel into an F256 Jr. in RAM mode.
 *
 * This program move the kernel into high RAM then jumps to the kernel.
-               use       defsfile
+               use       defs.d
 
                org       $E000
 
