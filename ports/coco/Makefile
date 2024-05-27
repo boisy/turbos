@@ -10,7 +10,7 @@ VPATH=$(TURBOSDIR)/source/modules $(TURBOSDIR)/source/commands $(TURBOSDIR)/sour
 
 AFLAGS += -DPORTNAME="$(PORTNAME)" -D$(PORTNAME)
 
-COMMANDS	= go
+COMMANDS	= go_simple
 MODULES	= kernel init tkcc
 OBJS	= $(MODULES) $(COMMANDS)
 
