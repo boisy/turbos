@@ -19,7 +19,7 @@ OS9                 = os9
 
 TURBOS_VERSION     = v$(TURBOS_MAJOR).$(TURBOS_MINOR)
 
-DEFSDIR             = $(TURBOSDIR)/source/definitions
+DEFSDIR             = $(TURBOSDIR)/source/include
 DSKDIR              = $(TURBOSDIR)/disk_images
 
 # Assembler definitions
