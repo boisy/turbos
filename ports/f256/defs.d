@@ -18,28 +18,17 @@ _FF_MODCHECK   equ       0                   Set to 1 for module header and CRC 
 _FF_UNIFIED_IO equ       0                   Set to 1 for unified I/O
 
 * Booting from an external storage device can bring in additional functionality.
-_FF_BOOTING    equ       0                   Set to 1 for bootfile loading
-
-* User IDs are useful for multi-user configurations.
-_FF_ID         equ       0                   Set to 1 to support user IDs
-
-* Without this system call, all processes run at priority 128.
-_FF_SPRIOR      equ       0                   Set to 1 to support setting process priority
-
-* Setting the software interrupt vector is not typically needed.
-_FF_SSWI        equ       0                   Set to 1 to support setting software interrupt vector
+_FF_BOOTING    equ       1                   Set to 1 for bootfile loading
 
 * TurbOS system definitions
                use       turbos.d
 
-* CoCo specific definitions
-
-* CoCo mapped I/O boundaries
-MappedIOStart  equ       $FE00
-MappedIOEnd    equ       $FFEF
-
-* CoCo ticks per second support
-TkPerSec       set       60
-
+* F256 Jr. specific definitions
                use       f256.d
-			
+
+* F256 Jr. mapped I/O boundaries
+MappedIOStart  equ       $FE00
+MappedIOEnd    equ       $FFFF
+
+* F256 Jr. ticks per second support
+TkPerSec       set       60

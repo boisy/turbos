@@ -43,6 +43,7 @@ F$Sleep        rmb       1                   suspend process
 F$ID           rmb       1                   return process ID
 F$SPrior       rmb       1                   set process priority
 F$SSWI         rmb       1                   set software interrupt
+F$PErr         rmb       1                   print Error
 F$PrsNam       rmb       1                   parse pathlist name
 F$CmpNam       rmb       1                   compare two names
 F$SchBit       rmb       1                   search bit map
@@ -170,6 +171,9 @@ SS.HngUp       rmb       1                   SetStat to tell driver to hangup ph
 SS.FSig        rmb       1                   new signal for temp locked files
                rmb       19
 
+               org       $A0
+               rmb       1
+SS.Fill        rmb       1                   enable command-line history erase (scf)
                ttl       Direct Page Definitions
                pag
 
@@ -582,7 +586,7 @@ E$PNNF         rmb       1                   path name Not Found
 E$SLF          rmb       1                   segment list full
 E$CEF          rmb       1                   creating existing file
 E$IBA          rmb       1                   illegal block address
-               rmb       1
+E$HangUp       rmb       1                   carrier detect lost
 E$MNF          rmb       1                   module not found
                rmb       1
 E$DelSP        rmb       1                   deleting stack pointer memory
