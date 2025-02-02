@@ -323,7 +323,7 @@ SWI3           pshs      pc,x,b              save off registers
 SWI2           pshs      pc,x,b              save off registers again
                ldb       #P$SWI2             get P$SWI2
                bra       FixSWI              save it off in process descriptor
-SVCNMI         jmp       [>D.NMI]            jump to address in D.NMI
+SVCNMI         
 DUMMY          rti                           return from interrupt
 SVCIRQ         jmp       [>D.SvcIRQ]         jump to service IRQ address
 SWI            pshs      pc,x,b              save off registers
