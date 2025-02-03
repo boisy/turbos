@@ -68,32 +68,29 @@ lint: *.asm $(KERNEL_SOURCES) $(MODULE_SOURCES)
 
 turbos_full.img: $(OBJS_FULL)
 	cat $? > $@.rom
-	ls -l $@.rom
-	os9 padrom 3840 $@.rom
 	cat $@.rom > $@.tmp
 	os9 padrom -b -c=0 65280 $@.tmp
 	dd if=/dev/zero of=lastpage.tmp bs=1 count=240
-	printf "\x00\x00\x01\x00\x01\x03\x01\x0F\x01\x0C\x01\x06\x01\x09\xF0\x14" > vectors.tmp
+	printf "\x00\x00\x01\x00\x01\x03\x01\x0F\x01\x0C\x01\x06\x01\x09" > vectors.tmp
+	stat -f "obase=16; 65536-256-%z+20" $@.rom | bc | xxd -r -p >> vectors.tmp
 	cat $@.tmp lastpage.tmp vectors.tmp > $@
 
 turbos_uio.img: $(OBJS_UIO)
 	cat $? > $@.rom
-	ls -l $@.rom
-	os9 padrom 3840 $@.rom
 	cat $@.rom > $@.tmp
 	os9 padrom -b -c=0 65280 $@.tmp
 	dd if=/dev/zero of=lastpage.tmp bs=1 count=240
-	printf "\x00\x00\x01\x00\x01\x03\x01\x0F\x01\x0C\x01\x06\x01\x09\xF0\x14" > vectors.tmp
+	printf "\x00\x00\x01\x00\x01\x03\x01\x0F\x01\x0C\x01\x06\x01\x09" > vectors.tmp
+	stat -f "obase=16; 65536-256-%z+20" $@.rom | bc | xxd -r -p >> vectors.tmp
 	cat $@.tmp lastpage.tmp vectors.tmp > $@
 
 turbos_min.img: $(OBJS_MIN)
 	cat $? > $@.rom
-	ls -l $@.rom
-	os9 padrom 3840 $@.rom
 	cat $@.rom > $@.tmp
 	os9 padrom -b -c=0 65280 $@.tmp
 	dd if=/dev/zero of=lastpage.tmp bs=1 count=240
-	printf "\x00\x00\x01\x00\x01\x03\x01\x0F\x01\x0C\x01\x06\x01\x09\xF0\x14" > vectors.tmp
+	printf "\x00\x00\x01\x00\x01\x03\x01\x0F\x01\x0C\x01\x06\x01\x09" > vectors.tmp
+	stat -f "obase=16; 65536-256-%z+20" $@.rom | bc | xxd -r -p >> vectors.tmp
 	cat $@.tmp lastpage.tmp vectors.tmp > $@
 	
 clean:
