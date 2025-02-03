@@ -4,8 +4,7 @@ TURBO9SIM.D         set       1
 ********************************************************************
 * Turbo9SimDefs - TurbOS System Definitions for the Turbo9 Simulator
 *
-* This is a high level view of the F256 memory map as setup by
-* TurbOS
+* This is a high level view of the memory map as setup by TurbOS
 *
 *     $0000----> ==================================
 *               |                                  |
@@ -27,11 +26,6 @@ TURBO9SIM.D         set       1
 *               |            &  Vectors            |
 *                ==================================
 *
-* F256 hardware is documented here:
-*   https://github.com/pweingar/C256jrManual/blob/main/tex/f256jr_ref.pdf
-*
-* $Id$
-*
 * Edt/Rev  YYYY/MM/DD  Modified by
 * Comment
 * ------------------------------------------------------------------
@@ -50,7 +44,11 @@ TkPerSec            set       60
 *
 * TurbOS Section
 *
+
 ********************************************************************
+* Mapped I/O boundaries
+MappedIOStart  set       $FF00
+MappedIOEnd    set       $FFFF
 
 ********************************************************************
 * Boot definitions for TurbOS

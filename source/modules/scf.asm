@@ -489,7 +489,7 @@ L0435               clrb                          Force to even page
                     inca
 L0442               pshs      d
                     ldx       PD.BUF,y            Get buffer pointer
-                    tfr       w,y
+                    puls      y
                     pshs      u
 L0443               lda       ,x+
                     sta       ,u+
