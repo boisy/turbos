@@ -33,12 +33,16 @@ name           fcs       /go/
 
 start          equ       *
 
-
-loop@          pshs      cc
-               orcc      #IntMasks
-               inc       $2000
-               puls      cc
-               ldx       #$10
+               lda       #'O
+               sta       $FF00
+               lda       #'K
+               sta       $FF00
+               leax      name,pcr
+               ldy       #2
+               lda       #1
+*               os9       I$Write
+               
+loop@          ldx       #$0
                os9       F$Sleep
                bra       loop@
 

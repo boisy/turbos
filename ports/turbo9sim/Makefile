@@ -74,6 +74,7 @@ turbos_full.img: $(OBJS_FULL)
 	printf "\x00\x00\x01\x00\x01\x03\x01\x0F\x01\x0C\x01\x06\x01\x09" > vectors.tmp
 	stat -f "obase=16; 65536-256-%z+20" $@.rom | bc | xxd -r -p >> vectors.tmp
 	cat $@.tmp lastpage.tmp vectors.tmp > $@
+	rm *.tmp
 
 turbos_uio.img: $(OBJS_UIO)
 	cat $? > $@.rom
@@ -83,6 +84,7 @@ turbos_uio.img: $(OBJS_UIO)
 	printf "\x00\x00\x01\x00\x01\x03\x01\x0F\x01\x0C\x01\x06\x01\x09" > vectors.tmp
 	stat -f "obase=16; 65536-256-%z+20" $@.rom | bc | xxd -r -p >> vectors.tmp
 	cat $@.tmp lastpage.tmp vectors.tmp > $@
+	rm *.tmp
 
 turbos_min.img: $(OBJS_MIN)
 	cat $? > $@.rom
@@ -92,6 +94,7 @@ turbos_min.img: $(OBJS_MIN)
 	printf "\x00\x00\x01\x00\x01\x03\x01\x0F\x01\x0C\x01\x06\x01\x09" > vectors.tmp
 	stat -f "obase=16; 65536-256-%z+20" $@.rom | bc | xxd -r -p >> vectors.tmp
 	cat $@.tmp lastpage.tmp vectors.tmp > $@
+	rm *.tmp
 	
 clean:
 	-$(RM) $(OBJS_FULL) $(OBJS_UIO) $(OBJS_MIN) *.rom *.img *.tmp *.list *.map lastpage
