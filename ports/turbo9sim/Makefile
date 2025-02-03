@@ -1,5 +1,31 @@
 PORTNAME	= turbo9sim
 
+# Assemble-time capability flags
+#
+# Feature Flags - eliminating one or more of these capabilities saves code space.
+#
+# Manage your own interrupts or install interrupt service routines using F$IRQ.
+#_FF_IRQ_POLL           Set to 1 for interrupt service routine polling
+#
+# Use virtual interrupt service routines using F$VIRQ.
+#_FF_VIRQ_POLL          Set to 1 for virtual interrupt service routine polling
+#
+# Wall time gives year/month/date/hour/minute/second support.
+#_FF_WALLTIME           Set to 1 for a software wall time clock
+#
+# Module CRC and header parity checks are useful for integrity, but slows down loading.
+#_FF_MODCHECK           Set to 1 for module header and CRC checking
+#
+# Unified I/O adds a standard device interface at the expense of more memory.
+#_FF_UNIFIED_IO         Set to 1 for unified I/O
+#
+# Booting from an external storage device can bring in additional functionality.
+#_FF_BOOTING            Set to 1 for bootfile loading
+
+KERNEL_FULL = -D_FF_IRQ_POLL=1 -D_FF_VIRQ_POLL=1 -D_FF_WALLTIME=1 -D_FF_MODCHECK=1 -D_FF_UNIFIED_IO=1 -D_FF_BOOTING=1
+KERNEL_MIN  = -D_FF_IRQ_POLL=0 -D_FF_VIRQ_POLL=0 -D_FF_WALLTIME=0 -D_FF_MODCHECK=0 -D_FF_UNIFIED_IO=0 -D_FF_BOOTING=0
+KERNEL_UIO  = -D_FF_IRQ_POLL=0 -D_FF_VIRQ_POLL=0 -D_FF_WALLTIME=0 -D_FF_MODCHECK=0 -D_FF_UNIFIED_IO=1 -D_FF_BOOTING=0
+
 ifndef TURBOSDIR
 	TURBOSDIR=$(HOME)/Projects/turbos
 endif
@@ -11,7 +37,7 @@ VPATH=$(TURBOSDIR)/source/modules $(TURBOSDIR)/source/commands $(TURBOSDIR)/sour
 AFLAGS += -DPORTNAME="$(PORTNAME)" -D$(PORTNAME)
 
 COMMANDS	= go
-KERNEL	= kernel init tkt9sim
+KERNEL	= kernel_full kernel_uio kernel_min init tkt9sim
 UIO	= kernel init tkt9sim ioman scf scvt term
 OBJS	= $(KERNEL) $(COMMANDS)
 OBJS_UIO = $(KERNEL) $(UIO) $(COMMANDS)
@@ -27,8 +53,15 @@ KERNEL_SOURCES = kernel.asm fallbit.asm faproc.asm fchain.asm fcmpnam.asm fcrc.a
 
 MODULE_SOURCES	= init.asm tkt9sim.asm
 
-kernel: $(KERNEL_SOURCES)
+kernel_full: $(KERNEL_SOURCES)
+	$(AS) $(KERNEL_FULL) $? -o$@
 
+kernel_uio: $(KERNEL_SOURCES)
+	$(AS) $(KERNEL_UIO) $? -o$@
+	
+kernel_min: $(KERNEL_SOURCES)
+	$(AS) $(KERNEL_MIN) $? -o$@
+	
 lint: *.asm $(KERNEL_SOURCES) $(MODULE_SOURCES)
 	$(foreach file,$^,mamou -ls -p $(file) > /tmp/lint.out; mv /tmp/lint.out $(file) ;)
 
