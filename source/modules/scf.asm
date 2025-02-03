@@ -1,7 +1,5 @@
 ********************************************************************
-* SCF - NitrOS-9 Sequential Character File Manager
-*
-* $Id$
+* SCF - TurbOS Sequential Character File Manager
 *
 * This contains an added SetStat call to allow placing prearranged data
 * into the keyboard buffer of ANY SCF related device.
@@ -20,188 +18,8 @@
 * Edt/Rev  YYYY/MM/DD  Modified by
 * Comment
 * ------------------------------------------------------------------
-*          1993/04/20  ???
-* V1.09:
-* - Speeded up L05CC (write char to device) routine by a few cycles
-* - Slightly optimized Insert char.
-* - Move branch table so Read & ReadLn are 1 cycle faster each; fixed
-*   SS.Fill so size is truncated @ 256 bytes.
-* - Added NO CR option to SS.Fill (for use with modified Shellplus V2.2
-*   command history).
-*
-*          1993/04/21  ???
-* Slight speedup to some of ReadLn parsing, TFM's in Open/Close.
-* - More optimization to read/write driver calls
-* - Got rid of branch table @ L05E3 for speed
-*
-*          1993/05/21  ???
-* V1.10:
-* Added Boisy Pitre's patch for non-sharable devices.
-* - Saved 4 cycles in routine @ L042B
-* - Modified Boisy's routine to not pshs/puls B (saves 2 cycles).
-* - Changed buffer prefill of CR's to save 1 byte.
-*
-*          1993/07/27  ???
-* V1.11:
-* Changed a BRA to a LBRA to a straight LBRA in L0322.
-* - Optimized path option character routine @ L032C
-*
-*          1993/08/03  ???
-* Modified vector table @ L033F to save 1 cycle on PD.PSC
-* - Sped up uppercase conversion checks for ReadLn & WritLn
-* - Changed 2 BRA's to L02F9 to do an LBRA straight to L05F8 (ReadLn loop)
-* - Moved L0565 routine so Reprint line, Insert & Delete char (on ReadLn)
-*   are 1 cycle faster / char printed
-* - Changed 2 references to L0420 to go straight to L0565
-* - Sped up ReadLn loop by 2 or 3 cycles per char read
-*
-*          1993/09/21  ???
-* V1.12:
-* Sped up L0435 by 1 or 2 cycles (depending on branch)
-* - Changed LDD ,S to TFR X,D (saves 1 cycle) @ L04F1 (Write & WritLn)
-* - Modified L04F1 to use W without TFR (+1 byte, -3 cycles) (Write)
-*
-*          1993/11/09  ???
-* Took LDX #0/LDU PD.BUF,y from L03B5 & merged in @ L028A, L02EF & L0381.
-* Also changed BEQ @ L03A5 to skip re-loading X with 0.
-*
-*          1993/11/10  ???
-* Moved L04B2 routine to allow a couple of BSR's instead of LBSR's In READ.
-* - Moved driver call right into READ loop (should save 25 cycles/char read)
-* - Moved driver call right into L0565 (should save 12 cycles/char written on echo,
-*   line editing, etc.)
-*
-*          1993/11/26  ???
-* Moved L02FE (ReadLn parsing) to end where ReadLn routine is moved L03E2
-* so Read loop would be optimized for it (read char from driver) instead of
-* L042B (write filled buffer to caller).
-* Changed LDA #C$NULL to CLRA.
-*
-*          1993/12/01  ???
-* Modified device write call (L056F) to preserve Y as well, to cut down on
-* PSHS/PULS.
-* - Changed L03E2 & L03DA to exit immediately if PD.DEV or PD.DV2 (depending
-* on which routine) is empty (eliminated redundant LEAX ,X).
-*
-*          1994/05/31  ???
-* Attempted mode to L03F1 to eliminate LDW #D$READ, changed:
-*      LDX V$DRIV,x
-*      ADDW M$Exec,x
-*      JSR w,x
-* to:
-*      LDW V$DRIV,x
-*      ADDW M$Exec,w
-*      JSR D$READ,w
-* Did same to L05C9 & L056F (should speed up each by 1 cycle)
-*
-*          1994/06/07  ???
-* Attempted to modify all M$Exec calls to use new V$DRIVEX (REQUIRES NEW IOMAN)
-* - L01FA (Get/SetStat), L03F1 (Read), L05C9 (Write), L056F (Write)
-* - Changed L046A to use LDB V.BUSY,x...CMPB ,s...TFR B,A
-*
-*          1994/06/08  ???
-* Changed TST <PD.EKO,y in read loop (L02BC) to LDB PD.EKO,y
-* - Changed LEAX 1,X to LDB #1/ABX @ L02C4
-* - Changed LEAX >L033F,pc @ L032C to use < (8 bit) version
-* - Modified L02E5 to use D instead of X, allowing TSTA, and faster exit on 0 byte
-*   just BRAnching to L0453
-*
-*          1994/06/09  ???
-* Changed LEAX 1,X to LDB #1/ABX @ L053D, L05F8, L0312, L0351, L03B8
-* - Changed to L0573: All TST's changed to LDB's
-* - Changed Open/Create init to use LEAX,PC instead of BSR/PULS X
-* - Changed TST PD.CNT,y to LDA PD.CNT,y @ close
-* - Eliminated L010D, changed references to it to go to L0129
-* - Eliminated useless LEAX ,X @ L0182, and changed BEQ @ L0182 to go to L012A
-*   instead of L0129 (speeds CLOSE by 5 or 10 cycles)
-* - Moved L06B9 into L012B, eliminate BSR/RTS, plus
-* - Changed TST V.TYPE,x to LDB V.TYPE,x
-* - Moved L0624 to just before L05F8 to eliminate BRA L05F8 (ReadLn)
-* - Changed TST PD.EKO,y @ L0413 to LDB PD.EKO,y
-* - Moved L0413-L0423 routines to later in code to allow short branches
-* - As result of above, changed 6 LBxx to Bxx
-* - Changed TST PD.MIN,y @ L04BB to LDA PD.MIN,y
-* - Changed TST PD.RAW,y/TST PD.UPC,y @ L0523 to LDB's
-* - Changed TST PD.ALF,y @ L052A to LDB
-* - L053D: Moved TST PD.RAW,y to before LDA -1,u to speed up WRITE, changed it to LDB
-*
-*          1994/06/10  ???
-* Changed TST PD.ALF,y to LDB @ L052A
-* - Changed CLR V.WAKE,u to CLRA/STA V.WAKE,u @ L03F1 (Read)
-* - Changed CLR V.BUSY,u to CLRA/STA V.BUSY,u @ L045D
-* - Changed CLR PD.MIN,y to CLRA/STA PD.MIN,y, moved before LDA P$ID,x @ L04A7
-* - Changed CLR PD.RAW,y @ L04BB to STA PD.RAW, since A already 0 to get there
-* - Changed CLR V.PAUS,u to CLRA/STA V.PAUS,u @ L05A2
-* - Changed TST PD.RAW,y to LDA PD.RAW,y @ L05A2
-* - Changed TST PD.ALF,y to LDA PD.ALF,y @ L05A2
-* - Changed CLR V.WAKE,u to CLRB/STB V.WAKE,u @ L05C9
-* - Changed CLR V.WAKE,u to CLRB/STB V.WAKE,u @ L056F
-* - Changed TST PD.UPC,y to LDB PD.UPC,y @ L0322
-* - Changed TST PD.DLO,y/TST PD.EKO,y to LDB's @ L03A5
-*
-*          1994/06/16  ???
-* Changed TST PD.UPC,y to LDB PD.UPC,y @ L0322
-* - Changed TST PD.BSO,y to LDB PD.BSO,y @ L03BF
-* - Changed TST PD.EKO,y to LDB PD.EKO,y @ L03BF
-*
-*          2002/10/11  Boisy G. Pitre
-* Merged NitrOS-9 and TuneUp versions for single-source maintenance.  Note that
-* the 6809 version of TuneUp never seemed to call GrfDrv directly to do fast screen
-* writes (see note around g.done label).
-*
-*  16r2    2002/05/16  Boisy G. Pitre
-* Removed pshs/puls of b from sharable code segment for non-NitrOS-9 because it was
-* not needed.
-*
-*  16r3    2002/08/16  Boisy G. Pitre
-* Now uses V$DRIVEX.
-*
-*  16r4    2004/07/12  Boisy G. Pitre
-* 6809 version now calls the FAST TEXT entry point of GrfDrv.
-*
-*  17      2010/01/15  Boisy G. Pitre
-* Fix for bug described in Artifact 2932883 on SF
-* Also added Level 1 conditionals for eventual backporting
-
-*
-*  17      2010/01/15  Boisy G. Pitre
-* Handling of device exclusivity using the SHARE. bit has been rearchitected.
-* The '93 patch looked at the mode bytes in the descriptor and driver and
-* determined that if both were set, then only one path would be allowed to
-* be opened on the device at a time.
-* I now believe this is wrong.
-* The mode bytes in the device driver and descriptor are capability bytes.
-* They advertise what the device is capable of doing (READ, WRITE, etc) so
-* the mode bytes alone do not convey action, but merely what is possible.
-* When the user calls I$Open on a device, he passes the desired mode byte
-* in RegA and IOMan checks to make sure that all bits in that register are
-* set in the mode bytes of the driver and descriptor.  So once we get into
-* the Open call of this file manager, we know that all set bits in RegA are
-* also set in the mode bytes of the driver and descriptor.
-*
-* For SHARE., what we SHOULD be doing is checking the number of open paths
-* on the device.  If the SHARE. bit is set in RegA, then we check if a path
-* is already open and if so, return the E$DevBsy error.
-* Likewise, if SHARE. is not set in RegA, we check the path at the head of
-* the open path list, and if ITS mode byte has the SHARE. bit set, we exit
-* with E$DevBsy too.  The idea is that if the SHARE. bit is set on the newly
-* opened path or an existing path, then there can "be only one."
-*
-*  18      2010/01/23  Boisy G. Pitre
-* SCF has successfully been backported to NitrOS-9 Level 1.
-* SCF now returns on carry set after calling SS.Open.  Prior to this
-* change, SS.ComSt would be called right after SS.Open even if SS.Open
-* failed. This caused misery with the scdwn driver wildcard feature.
-*
-* EOU Version 1.0.0
-*          2022/08/01  LCB
-* slight optimization in ReadLn chars when echo is turned on & a control
-* code other than CR was received. Saves 2 bytes/3 cyc for that case (other
-* chars no change. (L0418)
-* 2 lbsr's changed to bsr's (both CPU's) - bsr L0403 in g.loop & bsr L0565 in L0634
-
-                    nam       SCF
-                    ttl       NitrOS-9 Sequential Character File Manager
+*          2022/08/01  Boisy G. Pitre
+* Adapted from NitrOS-9.
 
                     use       defs.d
                     use       scf.d
@@ -251,12 +69,6 @@ open1               sty       R$X,u               Save updated name pointer to c
                     bcs       oerr                Can't allocate it return with error
                     stu       PD.BUF,y            Save buffer address to path descriptor
                     leax      <msg,pc             Get ptr to init string
-                    IFNE      H6309
-                    ldw       #msgsize            get size of default message
-                    tfm       x+,u+               Copy it into buffer (leaves X pointing to 2nd CR)
-                    ldw       #blksize            Size of rest of buffer
-                    tfm       x,u+                Fill rest of buffer with CR's
-                    ELSE
 CopyMsg             lda       ,x+
                     sta       ,u+
                     decb
@@ -265,7 +77,6 @@ CopyMsg             lda       ,x+
 CopyCR              sta       ,u+
                     decb
                     bne       CopyCR
-                    ENDC
                     ldu       PD.DEV,y            Get device table entry address
                     beq       bpnam               Doesn't exist, exit with bad pathname error
                     ldx       V$STAT,u            Get devices' static storage address
@@ -274,42 +85,22 @@ CopyCR              sta       ,u+
                     ldx       V$DESC,u            Get descriptor address
                     ldd       PD.D2P,y            Get offset to device name (duplicate from dev dsc)
                     beq       L00CF               None, skip ahead
-                    IFNE      H6309
-                    addr      d,x                 Point to device name in descriptor
-                    lda       PD.MOD,y            Get device mode (Read/Write/Update)
-                    lsrd                          ??? (swap Read/Write bits around in A?)
-                    ELSE
                     leax      d,x
                     lda       PD.MOD,y            Get device mode (Read/Write/Update)
                     lsra
                     rorb
-                    ENDC
                     lsra
                     rolb
                     rola
                     rorb
                     rola
-                    IFGT      Level-1
-                    pshs      y                   Save path descriptor pointer temporarily
-                    ldy       <D.Proc             Get current process pointer
-                    ldu       <D.SysPrc           Get system process descriptor pointer
-                    stu       <D.Proc             Make system current process
-                    ENDC
                     os9       I$Attach            Attempt to attach to device name in device desc.
-                    IFGT      Level-1
-                    sty       <D.Proc             Restore old current process pointer
-                    puls      y                   Restore path descriptor pointer
-                    ENDC
                     bcs       OpenErr             Couldn't attach to device, detach & exit with error
                     stu       PD.DV2,y            Save new output (echo) device table pointer
 *         ldu   PD.DEV,y     Get device table pointer
 L00CF               ldu       V$STAT,u            Point to it's static storage
-                    IFNE      H6309
-                    clrd
-                    ELSE
                     clra
                     clrb
-                    ENDC
                     std       PD.PLP,y            Clear out path descriptor list pointer
                     sta       PD.PST,y            Clear path status: Carrier not lost
                     pshs      d                   Save 0 on stack
@@ -323,23 +114,15 @@ L00CF               ldu       V$STAT,u            Point to it's static storage
 * in order to properly support SHARE. (device exclusivity), we get the
 * mode byte for the path we are opening and see if the SHARE. bit is set.
 * if so, then we return error since we cannot have exclusivity to the device.
-                    IFNE      H6309
-                    tim       #SHARE.,PD.MOD,y
-                    ELSE
                     lda       PD.MOD,y
                     bita      #SHARE.
-                    ENDC
                     bne       NoShare
 * we now know that the path's mode doesn't have the SHARE. bit set, so
 * we need to look at the mode of the path in the list header pointer to
 * see if ITS SHARE. bit is set (meaning it wants exclusive access to the
 * port).  If so we bail out
-                    IFNE      H6309
-                    tim       #SHARE.,PD.MOD,x
-                    ELSE
                     lda       PD.MOD,x
                     bita      #SHARE.
-                    ENDC
                     beq       CkCar               Check carrier status
 NoShare             leas      2,s                 Eat extra stack (including good path count)
                     comb
@@ -433,12 +216,8 @@ L016D               ldx       PD.PLP,x            advance to next path descripto
 L0172               cmpy      PD.PLP,x            is the passed path descriptor the same?
                     bne       L016D               branch if not
                     std       PD.PLP,x            store
-                    IFNE      H6309
-L017B               clrd
-                    ELSE
 L017B               clra
                     clrb
-                    ENDC
                     std       PD.PLP,y
 L0180               puls      cc,d,x,y,u,pc
 
@@ -453,11 +232,7 @@ L0182               beq       L012A               No device table, return to cal
                     pshs      d,x,y               Save everything
                     cmpa      V.LPRC,x            Current process same as last process using path?
                     bne       L01CA               No, return
-                    IFGT      Level-1
-                    ldx       <D.Proc             Get current process pointer
-                    ELSE
                     ldx       >D.Proc             Get current process pointer
-                    ENDC
                     leax      P$Path,x            Point to local path table
                     clra                          Start path # = 0 (Std In)
 L0198               cmpb      a,x                 Same path as one is process' local path list?
@@ -466,27 +241,14 @@ L0198               cmpb      a,x                 Same path as one is process' l
                     cmpa      #NumPaths           Done all paths?
                     blo       L0198               No, keep going
                     pshs      y                   Preserve path descriptor pointer
-                    IFNE      H6309
-                    lda       #SS.Relea           Release signals SetStat
-                    ldf       #D$PSTA             Get Setstat offset
-                    ELSE
                     ldd       #SS.Relea*256+D$PSTA
-                    ENDC
                     bsr       L01FA               Execute driver setstat routine
                     puls      y                   Restore path pointer
-                    IFGT      Level-1
-                    ldx       <D.Proc             Get current process pointer
-                    ELSE
                     ldx       >D.Proc             Get current process pointer
-                    ENDC
                     lda       P$PID,x             Get parent process ID
                     sta       ,s                  Save it
-                    IFGT      Level-1
-                    os9       F$GProcP            Get pointer to parent process descriptor
-                    ELSE
                     ldx       <D.PrcDBT
                     os9       F$Find64
-                    ENDC
                     leax      P$Path,y            Point to local path table
                     ldb       1,s                 Get path number
                     clra                          Get starting path number
@@ -527,39 +289,17 @@ L01F7               rts                           Return
 * Execute device driver Get/Set Status routine
 * Entry: A=GetStat/SetStat code
 *        Y=path descriptor ptr
-                    IFNE      H6309
-L01F8               ldf       #D$GSTA             Get Getstat driver entry offset
-L01FA               ldx       PD.DEV,y            Get device table pointer
-                    ldu       V$STAT,x            Get static storage pointer
-                    IFGT      Level-1
-                    ldx       V$DRIVEX,x          get execution pointer of driver
-                    ELSE
-                    pshs      d
-                    ldx       V$DRIV,x            get driver module
-                    ldd       M$EXEC,x            Point to entry point in driver
-                    leax      d,x
-                    puls      d
-                    ENDC
-                    pshs      y,u                 Preserve registers
-                    jsr       f,x                 Execute driver
-                    puls      y,u,pc              Restore & return
-                    ELSE
 L01F8               ldb       #D$GSTA
 L01FA               ldx       PD.DEV,y
                     ldu       V$STAT,x
-                    IFGT      Level-1
-                    ldx       V$DRIVEX,x
-                    ELSE
                     pshs      d
                     ldx       V$DRIV,x            get driver module
                     ldd       M$EXEC,x
                     leax      d,x
                     puls      d
-                    ENDC
                     pshs      u,y
 LC486               jsr       b,x
                     puls      y,u,pc
-                    ENDC
 
 * I$SetStt entry point
 setstt              lbsr      L04A2
@@ -571,68 +311,24 @@ L0212               bsr       L021B               Check codes
 putkey              cmpa      #SS.Fill            Buffer preload?
                     bne       L01FA               No, go execute driver setstat
                     pshs      u,y,x
-                    IFGT      Level-1
-                    ldx       <D.Proc             Get current process pointer
-                    ELSE
                     ldx       >D.Proc             Get current process pointer
-                    ENDC
                     lda       R$Y,u               Get flag byte for CR/NO CR
                     pshs      a                   Save it
-                    IFGT      Level-1
-                    lda       P$Task,x            Get task number
-                    ldb       <D.SysTsk           Get system task
-                    IFNE      H6309
-                    ldx       R$X,u               Get pointer to data to move
-                    ldf       R$Y+1,u             Get number of bytes (max size of 256 bytes)
-                    ldu       PD.BUF,y            Get input buffer pointer
-                    clre                          High byte of Y
-                    tfr       w,y                 Move size into proper register for F$Move
-                    ELSE
-                    pshs      d
-                    clra
-                    ldb       R$Y+1,u
-                    ldx       R$X,u
-                    ldu       PD.BUF,y
-                    tfr       d,y
-                    puls      d
-                    ENDC
-* X=Source ptr from caller, Y=# bytes to move, U=Input buffer ptr
-                    os9       F$Move              Move it
-                    bcs       putkey1             Exit if error
-                    tfr       y,d                 Move number of bytes to D
-                    ELSE
 loop                lda       ,x+
                     sta       ,u+
                     leay      -1,y
                     bne       loop
-                    ENDC
                     lda       ,s                  Get CR flag
                     bmi       putkey1             Don't want CR appended, exit
                     lda       #C$CR               Get code for carriage return
                     sta       b,u                 Put it in buffer to terminate string
 putkey1             puls      a,x,y,u,pc          Eat stack & return
 
-                    IFNE      H6309
-L021B               ldf       #D$PSTA             Get driver entry offset for setstat
-                    ELSE
 L021B               ldb       #D$PSTA             Get driver entry offset for setstat
-                    ENDC
                     lda       R$B,u               Get function code from caller
                     bne       putkey              Not SS.OPT, go check buffer load
 * SS.OPT SETSTAT
                     ldx       PD.PAU,y            Get current pause & page
-                    IFGT      Level-1
-                    pshs      y,x                 Preserve Path pointer & pause/page
-                    ldx       <D.Proc             Get current process pointer
-                    lda       P$Task,x            Get task number
-                    ldb       <D.SysTsk           Get system task number
-                    ldx       R$X,u               Get callers destination pointer
-                    leau      PD.OPT,y            Point to path options
-                    ldy       #OPTCNT             Get option length
-                    os9       F$Move              Move it to caller
-                    puls      y,x                 Restore Path pointer & page/pause status
-                    bcs       L01F7               Return if error from move
-                    ELSE
                     pshs      x,y
                     ldx       R$X,u
                     leay      PD.OPT,y
@@ -642,16 +338,9 @@ optloop             lda       ,x+
                     decb
                     bne       optloop
                     puls      x,y
-                    ENDC
-                    IFEQ      H6309
                     pshs      x
-                    ENDC
                     ldd       PD.PAU,y            Get new page/pause status
-                    IFNE      H6309
-                    cmpr      d,x                 Same as old?
-                    ELSE
                     cmpd      ,s++
-                    ENDC
                     beq       L0250               Yes, go on
                     ldu       PD.DEV,y            Get device table pointer
                     ldu       V$STAT,u            Get static storage pointer
@@ -773,15 +462,11 @@ L03F1               tfr       u,d                 Yes, move echo device' static 
                     std       V.DEV2,u            Save echo device's static storage into input device
                     clra
                     sta       V.WAKE,u            Flag input device to be awake
-                    IFGT      Level-1
-                    ldx       V$DRIVEX,x          Get driver execution pointer
-                    ELSE
                     pshs      d
                     ldx       V$DRIV,x            get driver module
                     ldd       M$EXEC,x            Get driver execution pointer
                     leax      d,x
                     puls      d
-                    ENDC
                     jsr       D$READ,x            Execute READ routine in driver
 L0401               puls      pc,u,y,x            Restore regs & return
 
@@ -797,51 +482,20 @@ L042B               pshs      y,x                 Preserve path dsc. ptr & char.
 L0435               clrb                          Force to even page
                     ldu       PD.RGS,y            Get callers register stack pointer
                     ldu       R$X,u               Get ptr to caller's buffer
-                    IFNE      H6309
-                    addr      d,u                 Offset to even page into buffer
-                    clre                          Clear MSB of count
-                    ldf       1,s                 LSB of count on even page?
-                    bne       L0442               No, go on
-                    ince                          Make it even 256
-L0442
-                    IFGT      Level-1
-                    lda       <D.SysTsk           Get source task number
-                    ENDC
-                    ELSE
                     leau      d,u
                     clra
                     ldb       1,s
                     bne       L0442               No, go on
                     inca
 L0442               pshs      d
-                    IFGT      Level-1
-                    lda       <D.SysTsk           Get source task number
-                    ENDC
-                    ENDC
-                    IFGT      Level-1
-                    ldx       <D.Proc             Get destination task number
-                    ldb       P$Task,x
                     ldx       PD.BUF,y            Get buffer pointer
-                    IFNE      H6309
-                    tfr       w,y                 Put count into proper register
-                    ELSE
-                    puls      y
-                    ENDC
-                    os9       F$Move              Move it to caller
-                    ELSE
-                    ldx       PD.BUF,y            Get buffer pointer
-                    IFEQ      H6309
-                    puls      y
-                    ELSE
                     tfr       w,y
-                    ENDC
                     pshs      u
 L0443               lda       ,x+
                     sta       ,u+
                     leay      -1,y
                     bne       L0443
                     puls      u
-                    ENDC
 L0451               puls      pc,y,x              Restore & return
 
 * I$ReadLn entry point
@@ -865,11 +519,7 @@ L02EF               pshs      d                   Save character count
 * no longer busy
 * Modifies X and A
 L0453
-                    IFGT      Level-1
-                    ldx       <D.Proc             Get current process
-                    ELSE
                     ldx       >D.Proc             Get current process
-                    ENDC
                     lda       P$ID,x              Get it's process ID
                     ldx       PD.DEV,y            Get device table pointer from our path dsc.
                     bsr       L045D               Check if it's busy
@@ -892,11 +542,7 @@ L046A               ldx       V$STAT,x            Get device static storage addr
                     tfr       b,a                 Get process # busy using device
                     os9       F$IOQu              Put our process into the IO Queue
                     inc       PD.MIN,y            Mark device as not mine
-                    IFGT      Level-1
-                    ldx       <D.Proc             Get current process
-                    ELSE
                     ldx       >D.Proc             Get current process
-                    ENDC
                     ldb       P$Signal,x          Get signal code
                     lda       ,s                  Get our process id # again for L046A
                     beq       L046A               No signal go try again
@@ -919,11 +565,7 @@ L049F               clra                          No error & return
 L04A2               lda       PD.PST,y            Get path status (carrier)
                     bne       L04C4               If carrier was lost, hang up process
 L04A7
-                    IFGT      Level-1
-                    ldx       <D.Proc             Get current process ID
-                    ELSE
                     ldx       >D.Proc             Get current process ID
-                    ENDC
                     clra
                     sta       PD.MIN,y            Flag device is mine
                     lda       P$ID,x              Get process ID #
@@ -978,17 +620,6 @@ L04F1               pshs      y,x                 Save write offset & path descr
                     tfr       x,d                 Move data offset to D
                     ldu       PD.RGS,y            Get register stack pointer
                     ldx       R$X,u               Get pointer to user's WRITE string
-                    IFNE      H6309
-                    addr      d,x                 Point to where we are in it now
-                    ldw       R$Y,u               Get # chars of original write
-                    subr      d,w                 Calculate # chars we have left to write
-                    cmpw      #64                 More than 64?
-                    bls       L0508               No, go on
-                    ldw       #64                 Max size per chunk 6309=64
-L0508               ldd       PD.BUF,y            Get buffer ptr
-                    inca                          Point to PD.BUF+256 (1 byte past end
-                    subr      w,d                 Subtract data size
-                    ELSE
                     leax      d,x                 Point to where we are in it now
                     ldd       R$Y,u               Get # chars of original write
                     subd      ,s                  Calculate # chars we have left to write
@@ -999,88 +630,19 @@ L0508               pshs      d                   Save buffered chunk size on st
                     ldd       PD.BUF,y            Get buffer ptr
                     inca                          Point to PD.BUF+256 (1 byte past end)
                     subd      ,s                  Subtract data size
-                    ENDC
                     tfr       d,u                 Move it to U
                     lda       #C$CR               Put a carriage return 1 byte before start
                     sta       -1,u                of write portion of buffer
-                    IFGT      Level-1
-                    ldy       <D.Proc             Get current process pointer
-                    lda       P$Task,y            Get the task number
-                    ldb       <D.SysTsk           Get system task number
-                    IFNE      H6309
-                    tfr       w,y                 Get number of bytes to move
-                    ELSE
-                    puls      y
-                    ENDC
-                    os9       F$Move              Move data to buffer
-                    ELSE
-                    IFNE      H6309
-                    pshs      u                   Move data to buffer (level 1)
-                    tfm       x+,u+
-                    puls      u
-                    ELSE
-                    puls      y                   Move data to buffer (level 1)
+                    puls      y                   Move data to buffer
                     pshs      u
 L0509               lda       ,x+
                     sta       ,u+
                     leay      -1,y
                     bne       L0509
                     puls      u
-                    ENDC
-                    ENDC
                     puls      y,x                 Restore path descriptor pointer and data offset
 
-* at this point, we have
-* 0,s = end address of characters to write
-* X = number of characters written
-* Y = PD pointer
-* U = pointer to data buffer to write
-* Level 2: Use callcode $06 to call grfdrv (old DWProtSW from previous versions,
-*   now unused by GrfDrv
 L0523
-                    IFGT      Level-1
-                    ldb       PD.PAR,y            get device parity: bit 7 set = window
-                    cmpb      #$80                is it even potentially a CoWin window?
-                    bne       L0524               no, skip the rest of the crap
-                    clrb                          set to no uppercase conversion
-                    lda       PD.RAW,y            get raw output flag
-                    bne       g.raw               if non-zero, we do raw writes: no conversion
-                    ldb       PD.UPC,y            get uppercase conversion flag: 1 = do uppercase
-g.raw               pshs      b,x,y,u             save length, PD, data buffer pointers
-                    lbsr      get.wptr            get window table ptr into Y
-                    bcs       no.wptr             do old method on error
-* now we find out the number of non-control characters to write...
-g.fast              lda       5,s                 grab page number
-                    inca                          go to the next page
-                    clrb                          at the top of it
-                    subd      5,s                 take out number of bytes left to write
-                    pshs      b                   max. number of characters
-                    clrb                          always <256 characters to write
-g.loop              lda       ,u+                 get a character
-                    cmpa      #$20                is it a control character?
-                    blo       g.done              yes, we're done this stint
-                    tst       1,s                 get uppercase conversion flag
-                    beq       g.loop1             don't convert
-                    bsr       L0403               do a lower-uppercase conversion, if necessary
-                    sta       -1,u                save again
-g.loop1             incb                          done one more character
-                    cmpb      ,s                  done as many as we can?
-                    bne       g.loop
-g.done              leas      1,s                 kill max. count of characters to use
-                    cmpb      #1                  one or fewer characters?
-                    bls       no.wptr             yes, go use old method
-* now we call grfdrv...
-                    ldu       5,s                 get start pointer again
-                    abx                           done B more characters...
-                    stx       1,s                 save on-stack
-                    lbsr      call.grf            go call grfdrv: no error possible on return
-                    leau      b,u                 go up B characters in U, too
-                    stu       5,s                 save old U, too
-                    puls      b,x,y,u             restore registers
-                    bra       L0544               do end-buffer checks and continue
-
-no.wptr             puls      b,x,y,u             restore all registers
-                    ENDC
 L0524               lda       ,u+                 Get character to write
                     ldb       PD.RAW,y            Raw mode?
                     bne       L053D               Yes, go write it
@@ -1193,15 +755,11 @@ L05C9               ldu       V$STAT,x            Get device static storage poin
                     pshs      y,x                 Preserve registers
                     clrb
                     stb       V.WAKE,u            Wake it up
-                    IFGT      Level-1
-                    ldx       V$DRIVEX,x          Get driver execution pointer
-                    ELSE
                     pshs      d
                     ldx       V$DRIV,x            Get driver execution pointer
                     ldd       M$EXEC,x
                     leax      d,x
                     puls      d
-                    ENDC
                     jsr       D$WRIT,x            Execute driver
                     puls      pc,y,x              Restore & return
 
@@ -1214,15 +772,11 @@ L0565               pshs      u,y,x,a             Preserve registers
 L056F               ldu       V$STAT,x            Get device static storage pointer
                     clrb
                     stb       V.WAKE,u            Wake it up
-                    IFGT      Level-1
-                    ldx       V$DRIVEX,x          Get driver execution pointer
-                    ELSE
                     pshs      d
                     ldx       V$DRIV,x            get driver module
                     ldd       M$EXEC,x
                     leax      d,x
                     puls      d
-                    ENDC
                     jsr       D$WRIT,x            Execute driver
 L0571               puls      pc,u,y,x,a          Restore & return
 
@@ -1286,19 +840,6 @@ L0642               leas      2,s                 Purge buffer pointer
 L0647               cmpa      #C$INSERT           Insert character code?
                     bne       L0664               No, check delete
 * Process Insert character (NOTE:Currently destroys W)
-                    IFNE      H6309
-                    pshs      x,y                 Preserve x&y a moment
-                    tfr       u,w                 Dupe buffer pointer into w
-                    ldf       #$fe                End of buffer -1
-                    tfr       w,x                 Source copy address
-                    incw                          Include char we are on & dest address is+1
-                    tfr       w,y                 Destination copy address
-                    subr      u,w                 w=w-u (Size of copy)
-                    tfm       x-,y-               Move buffer up one
-                    puls      y,x                 Get back original y & x
-                    lda       #C$SPAC             Get code for space
-                    sta       ,u                  Save it there
-                    ELSE
                     pshs      u
                     tfr       u,d                 Move buffer ptr to D
                     ldb       #$FF                Point to end of buffer
@@ -1310,7 +851,6 @@ L06DE               lda       ,-u                 shift buffer later by 1 char
                     lda       #C$SPAC             Insert space at insert point in buffer
                     sta       ,u
                     leas      2,s
-                    ENDC
                     bra       L062D               Go print rest of line
 
 L0664               cmpa      #C$DELETE           Delete character code?
@@ -1472,92 +1012,6 @@ L03BF               leau      -1,u                Mover buffer pointer back 1 ch
                     lbsr      L0565               Send it to driver
 L03D4               lda       PD.BSE,y            Get BSE
                     lbra      L0565               Send it to driver
-
-                    IFGT      Level-1
-* check PD.DTP,y and update PD.WPTR,y if it's device type $10 (grfdrv)
-get.wptr            pshs      x,u
-                    ldu       PD.DEV,y            get device table entry
-                    ldx       V$DRIV,u            get device driver module
-                    ldd       M$Name,x            offset to name
-                    ldd       d,x
-                    cmpd      #"VT                is it VTIO?
-                    bne       no.fast             no, don't do the fast stuff
-* If/when we introduce buffered writes to CoVDG, this will need changing. LCB
-                    ldd       >WGlobal+G.GrfEnt   does GrfDrv have an entry address?
-                    beq       no.fast             nope, don't bother calling it.
-                    ldu       V$STAT,u            and device static storage
-                    tst       V.ParmCnt,u         are we busy getting more parameters?
-                    bne       no.fast             yes, don't do buffered writes
-* Get window table pointer & verify it: copied from CoWin and modified
-                    ldb       V.WinNum,u          Get window # from device mem
-                    lda       #Wt.Siz             Size of each entry
-                    mul                           Calculate window table offset
-                    addd      #WinBase            Point to specific window table entry
-                    tfr       d,y                 Move to y, the register we want
-                    lda       Wt.STbl,y           Get MSB of scrn tbl ptr
-                    bgt       VerExit             If $01-$7f, should be ok
-* Return illegal window definition error
-no.fast             comb                          set carry: no error code, it's an internal routine
-                    puls      x,u,pc
-
-VerExit             clra                          No error
-                    puls      x,u,pc
-
-call.grf            pshs      d,x,y,u             save registers
-                    ldx       #$0180              where to put the text
-                    IFNE      H6309
-                    pshs      cc                  save old CC
-                    ELSE
-                    tfr       cc,a
-                    sta       -2,x
-                    ENDC
-                    orcc      #IntMasks+Entire    shut everything else off
-                    IFNE      H6309
-                    clra                          make sure high byte=0
-                    tfr       d,w
-                    tfm       u+,x+               move the data into low memory
-                    ELSE
-l@                  lda       ,u+
-                    sta       ,x+
-                    decb
-                    bne       l@
-                    ENDC
-                    ldb       #6                  alpha put
-                    stb       >WGlobal+G.GfBusy   flag grfdrv busy
-                    IFNE      H6309
-                    lde       ,s+                 grab old CC off of the stack
-                    lda       1,s                 get the number of characters to write
-                    ELSE
-                    lda       1,s                 get the number of characters to write
-                    ENDC
-* A = number of bytes at $0180 to write out...
-                    bsr       do.grf              do the call
-* ignore errors : none possible from this particular call
-call.out            puls      d,x,y,u,pc          and return
-
-* this routine should always be called by a BSR, and grfdrv will use the
-* PC saved on-stack to return to the calling routine.
-* ALL REGISTERS WILL BE TRASHED
-do.grf              sts       >WGlobal+G.GrfStk   stack pointer for GrfDrv
-                    lds       <D.CCStk            get new stack pointer
-                    IFNE      H6309
-                    pshs      dp,x,y,u,pc
-                    pshsw
-                    pshs      cc,d                save all registers
-                    ELSE
-                    pshs      dp,cc,d,x,y,u,pc
-                    ENDC
-                    ldx       >WGlobal+G.GrfEnt   get GrfDrv entry address
-                    stx       R$PC,s              save grfdrv entry address as PC on the stack
-                    IFNE      H6309
-                    ste       R$CC,s              save CC onto CC on the stack
-                    ELSE
-                    stb       R$B,s
-                    ldb       $017E
-                    stb       R$CC,s
-                    ENDC
-                    jmp       [>D.Flip1]          flip to grfdrv and execute it
-                    ENDC
 
                     emod
 eom                 equ       *

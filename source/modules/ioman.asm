@@ -1,29 +1,20 @@
 ********************************************************************
-* IOMan - OS-9 Level One V2 I/O Manager module
+* IOMan - TurbOS I/O Manager module
 *
 * $Id$
 *
 * Edt/Rev  YYYY/MM/DD  Modified by
 * Comment
 * ------------------------------------------------------------------
-*  11      ????/??/??
-* From Tandy OS-9 Level One VR 02.00.00
-*
-*  12      2002/05/11  Boisy G. Pitre
-* I/O Queue sort bug and I$Attach static storage premature deallocation
-* bug fixed.
-
-                    nam       IOMan
-                    ttl       OS-9 Level One V2 I/O Manager module
+*   1      2025/02/02  Boisy G. Pitre
+* Obtained from NitrOS-9.
 
                     use       defs.d
 
 tylg                set       Systm+Objct
 atrv                set       ReEnt+rev
 rev                 set       $00
-* edition 11 = Stock OS-9 Level One Vr. 2.00 IOMan
-* edition 12 = IO Queue sort bug fixed, IAttach bug fixed
-edition             equ       12
+edition             equ       1
 
                     mod       eom,name,tylg,atrv,IOManEnt,size
 
