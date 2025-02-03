@@ -628,5 +628,6 @@ E$DeadLk       rmb       1                   I/O deadlock error
 C$Space        set       $20
 C$Period       set       '.
 C$Comma        set       ',
+C$CR           set       $0D
 
                endc
