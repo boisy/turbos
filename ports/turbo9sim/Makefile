@@ -39,9 +39,9 @@ AFLAGS += -DPORTNAME="$(PORTNAME)" -D$(PORTNAME)
 COMMANDS = go
 KERNELS  = kernel_full kernel_uio kernel_min
 
-OBJS_FULL = kernel_full init tkt9sim ioman scf scvt term $(COMMANDS)
-OBJS_UIO = kernel_uio init tkt9sim ioman scf scvt term $(COMMANDS)
-OBJS_MIN = kernel_min init tkt9sim $(COMMANDS)
+OBJS_FULL = kernel_full init tkt9sim_full ioman_full scf scvt term $(COMMANDS)
+OBJS_UIO = kernel_uio init tkt9sim_uio ioman_uio scf scvt term $(COMMANDS)
+OBJS_MIN = kernel_min init tkt9sim_min $(COMMANDS)
 
 all:	turbos_full.img turbos_uio.img turbos_min.img
 
@@ -61,6 +61,21 @@ kernel_uio: $(KERNEL_SOURCES)
 	$(AS) $(KERNEL_UIO) $? -o$@
 	
 kernel_min: $(KERNEL_SOURCES)
+	$(AS) $(KERNEL_MIN) $? -o$@
+	
+ioman_full: ioman.asm
+	$(AS) $(KERNEL_FULL) $? -o$@
+
+ioman_uio: ioman.asm
+	$(AS) $(KERNEL_UIO) $? -o$@
+	
+tkt9sim_full: tkt9sim.asm
+	$(AS) $(KERNEL_FULL) $? -o$@
+
+tkt9sim_uio: tkt9sim.asm
+	$(AS) $(KERNEL_UIO) $? -o$@
+	
+tkt9sim_min: tkt9sim.asm
 	$(AS) $(KERNEL_MIN) $? -o$@
 	
 lint: *.asm $(KERNEL_SOURCES) $(MODULE_SOURCES)

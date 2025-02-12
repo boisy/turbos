@@ -40,7 +40,7 @@ start          equ       *
                leax      name,pcr
                ldy       #2
                lda       #1
-*               os9       I$Write
+               os9       I$Write
                
 loop@          ldx       #$0
                os9       F$Sleep
