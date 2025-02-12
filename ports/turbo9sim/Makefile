@@ -81,33 +81,36 @@ tkt9sim_min: tkt9sim.asm
 lint: *.asm $(KERNEL_SOURCES) $(MODULE_SOURCES)
 	$(foreach file,$^,mamou -ls -p $(file) > /tmp/lint.out; mv /tmp/lint.out $(file) ;)
 
+#PADSIZE=65280
+PADSIZE=65280
+
 turbos_full.img: $(OBJS_FULL)
 	cat $? > $@.rom
 	cat $@.rom > $@.tmp
-	os9 padrom -b -c=0 65280 $@.tmp
+	os9 padrom -b -c=0 $(PADSIZE) $@.tmp
 	dd if=/dev/zero of=lastpage.tmp bs=1 count=240
 	printf "\x00\x00\x01\x00\x01\x03\x01\x0F\x01\x0C\x01\x06\x01\x09" > vectors.tmp
-	stat -f "obase=16; 65536-256-%z+20" $@.rom | bc | xxd -r -p >> vectors.tmp
+	stat -f "obase=16; $(PADSIZE)-%z+20" $@.rom | bc | xxd -r -p >> vectors.tmp
 	cat $@.tmp lastpage.tmp vectors.tmp > $@
 	rm *.tmp
 
 turbos_uio.img: $(OBJS_UIO)
 	cat $? > $@.rom
 	cat $@.rom > $@.tmp
-	os9 padrom -b -c=0 65280 $@.tmp
+	os9 padrom -b -c=0 $(PADSIZE) $@.tmp
 	dd if=/dev/zero of=lastpage.tmp bs=1 count=240
 	printf "\x00\x00\x01\x00\x01\x03\x01\x0F\x01\x0C\x01\x06\x01\x09" > vectors.tmp
-	stat -f "obase=16; 65536-256-%z+20" $@.rom | bc | xxd -r -p >> vectors.tmp
+	stat -f "obase=16; $(PADSIZE)-%z+20" $@.rom | bc | xxd -r -p >> vectors.tmp
 	cat $@.tmp lastpage.tmp vectors.tmp > $@
 	rm *.tmp
 
 turbos_min.img: $(OBJS_MIN)
 	cat $? > $@.rom
 	cat $@.rom > $@.tmp
-	os9 padrom -b -c=0 65280 $@.tmp
+	os9 padrom -b -c=0 $(PADSIZE) $@.tmp
 	dd if=/dev/zero of=lastpage.tmp bs=1 count=240
 	printf "\x00\x00\x01\x00\x01\x03\x01\x0F\x01\x0C\x01\x06\x01\x09" > vectors.tmp
-	stat -f "obase=16; 65536-256-%z+20" $@.rom | bc | xxd -r -p >> vectors.tmp
+	stat -f "obase=16; $(PADSIZE)-%z+20" $@.rom | bc | xxd -r -p >> vectors.tmp
 	cat $@.tmp lastpage.tmp vectors.tmp > $@
 	rm *.tmp
 	

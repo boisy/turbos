@@ -41,10 +41,9 @@ start          equ       *
                ldy       #2
                lda       #1
                os9       I$Write
-               
-loop@          ldx       #$0
+loop@          ldx       #10
                os9       F$Sleep
-               bra       loop@
+               bra       start
 
                emod
 eom            equ       *

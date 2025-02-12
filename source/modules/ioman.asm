@@ -1,20 +1,30 @@
 ********************************************************************
-* IOMan - TurbOS I/O Manager module
+* IOMan - OS-9 Level One V2 I/O Manager module
 *
 * $Id$
 *
 * Edt/Rev  YYYY/MM/DD  Modified by
 * Comment
 * ------------------------------------------------------------------
-*   1      2025/02/02  Boisy G. Pitre
-* Obtained from NitrOS-9.
+*  11      ????/??/??
+* From Tandy OS-9 Level One VR 02.00.00
+*
+*  12      2002/05/11  Boisy G. Pitre
+* I/O Queue sort bug and I$Attach static storage premature deallocation
+* bug fixed.
+
+                    nam       IOMan
+                    ttl       OS-9 Level One V2 I/O Manager module
 
                     use       defs.d
+;         use   scfdefs
 
 tylg                set       Systm+Objct
 atrv                set       ReEnt+rev
 rev                 set       $00
-edition             equ       1
+* edition 11 = Stock OS-9 Level One Vr. 2.00 IOMan
+* edition 12 = IO Queue sort bug fixed, IAttach bug fixed
+edition             equ       12
 
                     mod       eom,name,tylg,atrv,IOManEnt,size
 
@@ -31,7 +41,7 @@ IOManEnt            equ       *
                     ldb       #POLSIZ             and size per entry
                     mul                           D = size of all entries in bytes
                     pshs      b,a                 save off
-                    lda       CM$DevCnt,x            get device table count in init mod
+                    lda       CM$DevCnt,x         get device table count in init mod
                     ldb       #DEVSIZ             get size per dev table entry
                     mul                           D = size of all entires in bytes
                     pshs      b,a                 save off
@@ -92,7 +102,7 @@ IOCalls             fcb       $7F
 
 FIODel              ldx       R$X,u
                     ldu       <D.Init
-                    ldb       CM$DevCnt,u            get device count
+                    ldb       CM$DevCnt,u         get device count
                     ldu       <D.DevTbl
 L0083               ldy       V$DESC,u
                     beq       L0094
@@ -614,6 +624,8 @@ L0431               pshs      b,a
                     puls      a                   A holds func code
                     pshs      b,cc
                     ldb       <PD.DTP,y
+                    cmpb      #$04
+                    beq       L044D
                     tsta                          test func code
                     beq       GSOpt
                     cmpa      #SS.DevNm
