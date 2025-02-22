@@ -39,11 +39,12 @@ AFLAGS += -DPORTNAME="$(PORTNAME)" -D$(PORTNAME)
 COMMANDS = go
 KERNELS  = kernel_full kernel_uio kernel_min
 
-OBJS_FULL = kernel_full init tkt9sim_full ioman_full scf scvt term $(COMMANDS)
+OBJS_FULL = kernel_full init tkt9sim_full ioman_full scf scvt term go_fork procs
 OBJS_UIO = kernel_uio init tkt9sim_uio ioman_uio scf scvt term $(COMMANDS)
 OBJS_MIN = kernel_min init tkt9sim_min $(COMMANDS)
 
 all:	turbos_full.img turbos_uio.img turbos_min.img
+	ls -l turbos_full.img.rom turbos_uio.img.rom turbos_min.img.rom
 
 KERNEL_SOURCES = kernel.asm fallbit.asm faproc.asm fchain.asm fcmpnam.asm fcrc.asm \
 	ffork.asm flink.asm fnproc.asm fprsnam.asm fsrqmem.asm fssvc.asm \
