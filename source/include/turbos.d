@@ -206,7 +206,6 @@ D.Proc         rmb       2                   process descriptor address
 D.AProcQ       rmb       2                   active process queue
 D.WProcQ       rmb       2                   waiting process queue
 D.SProcQ       rmb       2                   sleeping process queue
-               ifne      _FF_WALLTIME
 D.Time         equ       .                   time
 D.Year         rmb       1                   current year
 D.Month        rmb       1                   current month
@@ -214,7 +213,6 @@ D.Day          rmb       1                   current da
 D.Hour         rmb       1                   current hour
 D.Min          rmb       1                   current minute
 D.Sec          rmb       1                   current second
-               endc
 D.Ticks        rmb       4                   number of ticks since boot
 D.Tick         rmb       1                   current tick
 D.TSec         rmb       1                   ticks per second
