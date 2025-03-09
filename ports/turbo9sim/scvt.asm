@@ -73,7 +73,8 @@ Init                clrb
 *    CC = carry set on error
 *    B  = error code
 *
-Read                clrb
+Read                lda     $FF01
+                    clrb
                     rts
 
 * Write

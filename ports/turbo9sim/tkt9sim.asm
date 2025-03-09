@@ -102,7 +102,7 @@ init
 * Initialize the clock hardware
                pshs      cc
                lda       #$01                set bit 0
-               sta       $FF02               write it to hardware register to start the timer interrupting the CPU
+               sta       $FF03               write it to hardware register to start the timer interrupting the CPU
                puls      cc,pc               recover IRQ enable status and return
 
 * Clock IRQ Entry Point
@@ -110,11 +110,11 @@ init
 SvcIRQ         clra                          clear A
                tfr       a,dp                set direct page to zero
 * TODO: Add Turbo9Sim clock interrupt servicing
-               lda       $FF01               get the interrupt pending byte
+               lda       $FF02               get the interrupt pending byte
                bita      #$01                test to see if it's a clock interrupt
                bne       clearirq@           it's a clock interrupt -- clear it
                jmp       [>D.SvcIRQ]         else service other possible IRQ
-clearirq@      sta       $FF01               clear clock interrupt by writing bit back
+clearirq@      sta       $FF02               clear clock interrupt by writing bit back
                dec       <D.Tick             decrement tick counter
                bne       handlevirq@         go around if not zero
                ifne      _FF_WALLTIME
