@@ -36,24 +36,27 @@
 ;;; The first byte of each block contains the block number, so only the remaining 63 bytes are usable.
 ;;; Routines using F$All64 shouldn't alter this first byte.
 ;;; 
-;;; The following diagram shows how 64 byte blocks might be allocated in two 256 byte pages located at $3000 ad
+;;; The following diagram shows how 64 byte blocks might be allocated in two 256 byte pages located at $3000 and
 ;;; $3600, respectively:
 ;;;
 ;;;                 -------------------------
 ;;; Base Page -->  | $30/$36     | $30       |
-;;;  $3000         | Page Table  |           |
-;;;                | 64 bytes    | 64 bytes  |
+;;;  $3000         | Page Table  | 64 bytes  |
+;;;                | 64 bytes    |           |
 ;;;                |------------ ------------|
 ;;;                | $30         | $30       |
 ;;;                | 64 bytes    | 64 bytes  |
+;;;                |             |           |
 ;;;                 -------------------------
 ;;;
 ;;;                 -------------------------
-;;; Next Page -->  | $36         | $36       |
+;;; Next Page -->  | $36         | $36        |
 ;;;  $3600         | 64 bytes    | 64 bytes  |
+;;;                |             |           |
 ;;;                |-------------------------|
 ;;;                | $36         |           |
 ;;;                | 64 bytes    | 64 bytes  |
+;;;                |             |           |
 ;;;                 -------------------------
 ;;;
 ;;; In this example, the first 256 byte page at $3000 is the base page. All four of its 64 byte blocks are allocated

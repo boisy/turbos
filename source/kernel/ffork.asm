@@ -96,7 +96,7 @@
 ;;; Don't call F$Fork with a memory size of zero.
 
 FFork          ldx       <D.PrcDBT           get the pointer to the process descriptor table               
-               os9       F$All64             allocate a 64 byte page of RAM
+               os9       F$All64             allocate a 64 byte page of RAM for the process descriptor
                bcs       errex@              branch if error
                ldx       <D.Proc             get the parent (current) process descriptor
                pshs      x                   save it on the stack
