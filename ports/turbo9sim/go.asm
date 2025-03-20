@@ -33,15 +33,7 @@ name           fcs       /go/
 
 start          equ       *
 
-               lda       #'O
-               sta       $FF00
-               lda       #'K
-               sta       $FF00
-               leax      name,pcr
-               ldy       #2
-               lda       #1
-               os9       I$Write
-loop@          ldx       #10
+loop@          ldx       #0
                os9       F$Sleep
                bra       start
 
