@@ -46,7 +46,7 @@ launch         clra                          no specific type/language
                os9       F$Wait
                rts
 
-prog           fcs       /procs/
+prog           fcs       /shell/
 
                emod
 eom            equ       *

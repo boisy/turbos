@@ -34,12 +34,12 @@ include $(TURBOSDIR)/ports/rules.mak
 
 VPATH=$(TURBOSDIR)/source/modules $(TURBOSDIR)/source/commands $(TURBOSDIR)/source/kernel $(TURBOSDIR)/tests
 
-AFLAGS += -DPORTNAME="$(PORTNAME)" -D$(PORTNAME)
+AFLAGS += -DPORTNAME="$(PORTNAME)" -D$(PORTNAME) -DLEVEL=1
 
 COMMANDS = go
 KERNELS  = kernel_full kernel_uio kernel_min
 
-OBJS_FULL = kernel_full init tkt9sim_full ioman_full scf scvt term go_fork
+OBJS_FULL = kernel_full init tkt9sim_full ioman_full scf scvt term go_fork shell mfree mdir
 OBJS_UIO = kernel_uio init tkt9sim_uio ioman_uio scf scvt term $(COMMANDS)
 OBJS_MIN = kernel_min init tkt9sim_min $(COMMANDS)
 
