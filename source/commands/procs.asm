@@ -1,21 +1,11 @@
 ********************************************************************
 * Procs - Show processes
 *
-* $Id$
-*
 * Edt/Rev  YYYY/MM/DD  Modified by
 * Comment
 * ------------------------------------------------------------------
-*   9      ????/??/??
-* From Tandy OS-9 Level One VR 02.00.00.
-*
-*  10      2003/01/14  Boisy G. Pitre
-* Now uses -e instead of e.
-
-                    nam       Procs
-                    ttl       program module
-
-* Disassembled 02/04/05 13:22:14 by Disasm v1.6 (C) 1988 by RML
+*   1      2025/04/06  Boisy Pitre
+* Migrated from the NitrOS-9 Project.
 
                     use       defs.d
                     use       scf.d
@@ -28,7 +18,6 @@ edition             set       10
                     mod       eom,name,tylg,atrv,start,size
 
                     org       0
-narrow              rmb       1
 eflag               rmb       1
 aproc               rmb       2
 wproc               rmb       2
@@ -42,7 +31,7 @@ u00E8               rmb       2156
 PsBuf               rmb       450
 size                equ       .
 
-name                fcs       /Procs/
+name                fcs       /procs/
                     fcb       edition
 
 L0013               fcb       C$LF
@@ -61,7 +50,6 @@ WaiLo               fcs       "  waiting "
 SleLo               fcs       " sleeping "
 
 start               clr       <eflag
-                    clr       <narrow
 *
 * Check for a '-E' as argument
 *
@@ -99,17 +87,7 @@ L00FB               leax      buffer,u
                     pshu      b,a
                     pshu      b,a
                     puls      u
-                    tst       <narrow
-                    beq       L0156
-                    leay      >L0013,pcr
-                    lbsr      WritY
-                    lbsr      WrBuf
-                    leay      >DshSh,pcr          Write short dashes
-                    lbsr      WritY
-                    lbsr      WrBuf
-                    bra       L016A
 
-* Write 80 char header
 L0156               leay      >L005E,pcr
                     lbsr      WritY
                     lbsr      WrBuf
@@ -130,24 +108,12 @@ NextW               leax      -$09,x
                     ldb       $03,x
                     lbsr      L0214
                     lda       $04,x
-                    tst       <narrow
-                    beq       L0195
-                    leay      >ActSh,pcr
-                    bra       L0199
 L0195               leay      >ActLo,pcr
 L0199               cmpa      #$01
                     beq       L01BD               branch if status is active
-                    tst       <narrow
-                    beq       L01A7
-                    leay      >WaiSh,pcr
-                    bra       L01AB
 L01A7               leay      >WaiLo,pcr
 L01AB               cmpa      #$02
                     beq       L01BD               branch if status is waiting
-                    tst       <narrow
-                    beq       L01B9
-                    leay      >SleSh,pcr
-                    bra       L01BD
 L01B9               leay      >SleLo,pcr
 L01BD               bsr       WritY
                     ldb       $02,x
@@ -158,8 +124,6 @@ L01BD               bsr       WritY
                     leay      d,y
                     bsr       WritY
                     bsr       WrSpc               Write Space
-                    tst       <narrow
-                    bne       L01EB
                     lda       #'<
                     bsr       WriCh
                     lda       $01,x

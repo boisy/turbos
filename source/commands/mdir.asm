@@ -1,5 +1,5 @@
 ********************************************************************
-* Mdir - Show module directory
+* mdir - Show module directory
 *
 * Edt/Rev  YYYY/MM/DD  Modified by
 * Comment
@@ -13,7 +13,7 @@
 tylg                set       Prgrm+Objct
 atrv                set       ReEnt+rev
 rev                 set       $00
-edition             set       7
+edition             set       1
 stdout              set       1
 
                     mod       eom,name,tylg,atrv,start,size
@@ -22,19 +22,18 @@ stdout              set       1
 mdstart             rmb       2
 mdend               rmb       2
 parmptr             rmb       2
-zflag               rmb       1                   supress leading zeros flag
+zflag               rmb       1                   suppress leading zeros flag
 bufptr              rmb       1
 u0008               rmb       1
 datebuf             rmb       3
 timebuf             rmb       3
 u000F               rmb       1                   name field width
 u0010               rmb       1                   last starting column
-narrow              rmb       1
 buffer              rmb       80
                     rmb       450                 stack & parameters
 size                equ       .
 
-name                fcs       /Mdir/
+name                fcs       /mdir/
                     fcb       edition
 
 tophead             fcb       C$LF
@@ -44,15 +43,9 @@ ltitle              fcb       C$LF
                     fcb       C$LF
                     fcc       "---- ---- --- --- ---- --- ------------"
                     fcb       C$CR
-stitle              fcb       C$LF
-                    fcc       "Addr Size Ty Rv At Uc   Name"
-                    fcb       C$LF
-                    fcc       "---- ---- -- -- -- -- ---------"
-                    fcb       C$CR
 
 start               stx       <parmptr
                     clr       <zflag
-                    clr       <narrow             assume wide output
                     ldd       #$0C30
 SetSize
                     std       <u000F
@@ -77,9 +70,6 @@ SetSize
                     cmpd      #$2D45              -E ?
                     bne       L015D
                     leax      >ltitle,pcr
-                    tst       <narrow
-                    beq       L012B
-                    leax      >stitle,pcr
 L012B               ldy       #80                 max. length to write
                     lda       #stdout
                     os9       I$WritLn
@@ -114,13 +104,9 @@ L0168               ldy       MD$MPtr,x           ptr=0?
                     bsr       out4HS
                     ldd       M$Size,y            size
                     bsr       out4HS
-                    tst       <narrow
-                    bne       L0181
                     bsr       outSP
 L0181               lda       M$Type,y            type/lang
                     bsr       out2HS
-                    tst       <narrow
-                    bne       L018B
                     bsr       outSP
 L018B               lda       M$Revs,y            revision
                     anda      #RevsMask
@@ -128,8 +114,6 @@ L018B               lda       M$Revs,y            revision
                     ldb       M$Revs,y            attributes
                     lda       #'r
                     bsr       L01FE               bit 7 (ReEnt)
-                    tst       <narrow
-                    bne       L01A7
                     lda       #'w                 bit 6 (ModProt:1=writable)
                     bsr       L01FE
                     lda       #'3                 bit 5 (ModNat:6309 Native mode)

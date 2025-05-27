@@ -1,16 +1,11 @@
 ********************************************************************
-* Mfree - Show free memory
-*
-* $Id$
+* mfree - Show free memory
 *
 * Edt/Rev  YYYY/MM/DD  Modified by
 * Comment
 * ------------------------------------------------------------------
-*   5      ????/??/??
-* From Tandy OS-9 Level One VR 02.00.00.
-
-                    nam       Mfree
-                    ttl       Show free memory
+*   1      2025/04/06  Boisy Pitre
+* Migrated from the NitrOS-9 Project.
 
                     use       defs.d
                     use       scf.d
@@ -18,7 +13,7 @@
 tylg                set       Prgrm+Objct
 atrv                set       ReEnt+rev
 rev                 set       $00
-edition             set       5
+edition             set       1
 stdout              set       1
 
                     mod       eom,name,tylg,atrv,start,size
@@ -36,7 +31,7 @@ buffer              rmb       330                 buffer space
 stack               rmb       200                 stack size
 size                equ       .
 
-name                fcs       /Mfree/
+name                fcs       /mfree/
                     fcb       edition
 
 header              fcb       C$LF
@@ -46,12 +41,7 @@ header              fcb       C$LF
                     fcb       $80+C$CR
 totfree             fcb       C$LF
                     fcs       "Total pages free = "
-                    ifeq      f256+atari+turbo9sim
-gfxmem              fcs       "Graphics Memory "
-notalloc            fcs       "Not Allocated"
-ataddr              fcs       "at: $"
-                    endc
-                    
+
 start               leay      buffer,u            point Y to the buffer
                     sty       <bufptr             save off the pointer
                     leay      <header,pcr         point Y to the header
@@ -78,9 +68,6 @@ nextbyte            lda       ,x+                 get the byte in the bitmap
                     ldb       <totalfree          get the total number of free pages
                     bsr       bDeci               convert it to decimal
                     bsr       print               print the line
-                    ifeq      f256+atari+turbo9sim
-                    lbsr      displaygfx          show graphics memory usage
-                    endc
                     clrb                          clear carry and error code
                     os9       F$Exit              then exit
 *
@@ -185,24 +172,6 @@ dodigit@            pshs      a                   preserve registers
                     puls      a                   restore the register we pushed earlier
 convdigit@          anda      #$0F                clear the upper 4 bits of A
                     bra       setlead@            set the leading digit
-                    ifeq      f256+atari+turbo9sim
-displaygfx          pshs      y,x                 preserve registers
-                    leay      >gfxmem,pcr         point to graphics memory label
-                    bsr       ApndStr             append the string to the buffer
-                    lda       #stdout             we want standard output
-                    ldb       #SS.DStat           the device status for graphics memory
-                    os9       I$GetStt            get the status
-                    bcc       dogfx@              branch if no error
-                    leay      >notalloc,pcr       point to "not allocated" message
-                    bsr       ApndStr             append it to the buffer
-                    bra       goprint@            then go print it
-dogfx@              leay      >ataddr,pcr         point to the "allocated at" message
-                    lbsr      ApndStr             append it to the buffer
-                    tfr       x,d                 move X into D
-                    bsr       dHexa               and convert it into hex
-goprint@            puls      y,x                 restore the registers we pushed earlier
-                    lbra      print               and go print the buffer
-                    endc
                     
                     emod
 eom                 equ       *
