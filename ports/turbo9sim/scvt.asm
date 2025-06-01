@@ -190,10 +190,12 @@ NotReady            comb                          No, exit with Not Ready error
 SetStt              clrb
                     rts
                     
-IRQSvc              lda       MappedIOStart+Reg.Stat
+IRQSvc
+                    ldx       V.PORT,u            base hardware address
+                    lda       Reg.Stat,x
                     anda      #~Ctrl.TermIRQ  clear interrupt
-                    sta       MappedIOStart+Reg.Stat
-                    lda       MappedIOStart+Term.In
+                    sta       Reg.Stat,x
+                    lda       Term.In,x
                     ldb       V.IBufH,u           get head pointer in B
                     leax      V.InBuf,u           point X to input buffer
                     abx                           X now holds address of head
