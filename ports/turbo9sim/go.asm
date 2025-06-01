@@ -12,32 +12,32 @@
 *   1      2023/08/29  BGP
 * Created.
 
-               nam       go
-               ttl       Very simple initial program
+ nam go
+ ttl Very simple initial program
 
-               use       defs.d
+ use defs.d
 
-tylg           set       Prgrm+Objct
-atrv           set       ReEnt+rev
-rev            set       $01
-edition        set       1
+tylg set Prgrm+Objct
+atrv set ReEnt+rev
+rev set $01
+edition set 1
 
-               mod       eom,name,tylg,atrv,start,size
+ mod eom,name,tylg,atrv,start,size
 
-               org       0
-stack          rmb       200
-size           equ       .
+ org 0
+stack rmb 200
+size equ .
 
-name           fcs       /go/
-               fcb       edition
+name fcs /go/
+ fcb edition
 
-start          equ       *
+start equ *
 
-loop@          ldx       #0
-               os9       F$Sleep
-               bra       start
+loop@ ldx #0
+ os9 F$Sleep
+ bra start
 
-               emod
-eom            equ       *
-               end
+ emod
+eom equ *
+ end
 
