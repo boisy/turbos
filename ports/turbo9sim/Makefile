@@ -91,7 +91,7 @@ turbos_full.img: $(OBJS_FULL)
 	os9 padrom -b -c=0 $(PADSIZE) $@.tmp
 	dd if=/dev/zero of=lastpage.tmp bs=1 count=240
 	printf "\x00\x00\x01\x00\x01\x03\x01\x0F\x01\x0C\x01\x06\x01\x09" > vectors.tmp
-	stat -f "obase=16; $(PADSIZE)-%z+20" $@.rom | bc | xxd -r -p >> vectors.tmp
+	echo "obase=16; $(PADSIZE)-`wc -c <$@.rom`+20" | bc | xxd -r -p >> vectors.tmp
 	cat $@.tmp lastpage.tmp vectors.tmp > $@
 	rm *.tmp
 
@@ -101,7 +101,7 @@ turbos_uio.img: $(OBJS_UIO)
 	os9 padrom -b -c=0 $(PADSIZE) $@.tmp
 	dd if=/dev/zero of=lastpage.tmp bs=1 count=240
 	printf "\x00\x00\x01\x00\x01\x03\x01\x0F\x01\x0C\x01\x06\x01\x09" > vectors.tmp
-	stat -f "obase=16; $(PADSIZE)-%z+20" $@.rom | bc | xxd -r -p >> vectors.tmp
+	echo "obase=16; $(PADSIZE)-`wc -c <$@.rom`+20" | bc | xxd -r -p >> vectors.tmp
 	cat $@.tmp lastpage.tmp vectors.tmp > $@
 	rm *.tmp
 
@@ -111,7 +111,7 @@ turbos_min.img: $(OBJS_MIN)
 	os9 padrom -b -c=0 $(PADSIZE) $@.tmp
 	dd if=/dev/zero of=lastpage.tmp bs=1 count=240
 	printf "\x00\x00\x01\x00\x01\x03\x01\x0F\x01\x0C\x01\x06\x01\x09" > vectors.tmp
-	stat -f "obase=16; $(PADSIZE)-%z+20" $@.rom | bc | xxd -r -p >> vectors.tmp
+	echo "obase=16; $(PADSIZE)-`wc -c <$@.rom`+20" | bc | xxd -r -p >> vectors.tmp
 	cat $@.tmp lastpage.tmp vectors.tmp > $@
 	rm *.tmp
 	
